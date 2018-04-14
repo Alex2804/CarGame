@@ -1,17 +1,14 @@
 package de.Alex2804;
 
 import de.Alex2804.objects.Object;
-import de.Alex2804.objects.Street;
-import de.Alex2804.objects.cars.Car;
 import de.Alex2804.objects.cars.EnemyCar;
 import de.Alex2804.objects.cars.PlayerCar;
-import org.w3c.dom.css.Rect;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.lang.Thread;
 
 public class ObstacleManager implements Runnable{
     private EnemyCar sampleEnemey;
@@ -23,46 +20,45 @@ public class ObstacleManager implements Runnable{
 
     private ThreadLocalRandom random = ThreadLocalRandom.current();
 
-    private int timerSpeed = 100;
-
     private double nextEnemy = 0;
-    private double nextEnemyMin = 0000; // in milliseconds
+    private double nextEnemyMin = 0; // in milliseconds
     private double nextEnemyMax = 25000;
     private double enemyTime = 0;
     private double enemyTimeStart = 0;
 
-    int lastTrack = -1;
-    int freeTrack = -1;
-    double changeFreeTrack = 2000;
-    double freeTrackTime = 0;
-    double freeTrackTimeStart = 0;
+    private int lastTrack = -1;
+    private int freeTrack = -1;
+    private double changeFreeTrack = 2000;
+    private double freeTrackTime = 0;
+    private double freeTrackTimeStart = 0;
 
-    double changeTrackTime = 0;
-    double changeTrackTimeStart = 0;
-    double changeTrackTimeMin = 8000;
-    double changeTrackTimeMax = 20000;
-    double changeTrack = changeTrackTimeMax;
+    private double changeTrackTime = 0;
+    private double changeTrackTimeStart = 0;
+    private double changeTrackTimeMin = 8000;
+    private double changeTrackTimeMax = 20000;
+    private double changeTrack = changeTrackTimeMax;
 
-    double newFuelTimeDistanceMin = PlayerCar.getMaxDistance() * 0.20;
-    double newFuelTankDistance = newFuelTimeDistanceMin;
-    double newFuelTimeDistanceMax = PlayerCar.getMaxDistance() - (PlayerCar.getMaxDistance() * 0.05);
-    double newFuelTank = newFuelTimeDistanceMin;
-    double newFuelTankDistanceAdditive = PlayerCar.getMaxDistance() * 0.001;
+    private double newFuelTankDistanceMin = PlayerCar.getFuelMaxDistance() * 0.2;
+    private double newFuelTankDistance = newFuelTankDistanceMin;
+    private double newFuelTankDistanceMax = PlayerCar.getFuelMaxDistance() * 0.95;
+    private double newFuelTank = 0;
+    private double newFuelTankDistanceAdditive = PlayerCar.getFuelMaxDistance() * 0.01;
 
-    Thread thread = new Thread(this);
+    private Thread thread = new Thread(this);
+    private int threadSpeed = 100;
 
     public ObstacleManager(StreetManager streetManager){
-        init(streetManager, new ArrayList<>(), new ArrayList<>());
+        init(streetManager, new ArrayList<EnemyCar>(), new ArrayList<Object>());
     }
     public ObstacleManager(StreetManager streetManager, ArrayList<EnemyCar> enemys, ArrayList<Object> barriers){
         init(streetManager, enemys, barriers);
     }
     private void init(StreetManager streetManager, ArrayList<EnemyCar> enemys, ArrayList<Object> barriers){
-        this.enemys = enemys;
-        this.barriers = barriers;
+        setEnemys(enemys);
+        setBarriers(barriers);
         this.streetManager = streetManager;
         sampleEnemey = new EnemyCar(0, 0, streetManager);
-        fuelTanks = new ArrayList<>();
+        setFuelTanks(new ArrayList<>());
         changeTrackTimeStart = System.currentTimeMillis();
         thread.start();
     }
@@ -74,7 +70,7 @@ public class ObstacleManager implements Runnable{
             checkEnemyBarrierCollision();
 
             try {
-                Thread.sleep(timerSpeed);
+                Thread.sleep(threadSpeed);
             } catch (InterruptedException e) {
 
                 String msg = String.format("Thread interrupted: %s", e.getMessage());
@@ -84,10 +80,10 @@ public class ObstacleManager implements Runnable{
         }
     }
 
-    public void test() {
+    public void generateObstacles() {
         newFuelTank += streetManager.getSpeed();
         if(newFuelTank >= newFuelTankDistance){
-            if(newFuelTankDistance + newFuelTankDistanceAdditive < newFuelTimeDistanceMax){
+            if(newFuelTankDistance + newFuelTankDistanceAdditive < newFuelTankDistanceMax){
                 newFuelTankDistance += newFuelTankDistanceAdditive;
             }
             newFuelTank = 0;
@@ -124,7 +120,8 @@ public class ObstacleManager implements Runnable{
 
     public void addNewFuelTank(){
         Object fuelTank = new Object(0, 0, "res/fueltank.png");
-        int track = random.nextInt(0, streetManager.getHorizontalStreetCount());
+        //int track = random.nextInt(0, streetManager.getHorizontalStreetCount());
+        int track = freeTrack >= 0 ? freeTrack : random.nextInt(0, streetManager.getHorizontalStreetCount());
         double x = streetManager.getXAdditive() + StreetManager.getSampleStreet().getWidth() * track +
                 (0.5 * streetManager.getSampleStreet().getWidth() - 0.5 * fuelTank.getWidth());
         double y = - (fuelTank.getHeight() + 200);
@@ -134,14 +131,13 @@ public class ObstacleManager implements Runnable{
 
     public void addNewEnemy(){
         EnemyCar enemy = getNewEnemy();
-        if(!checkCollisions(enemy)){
+        if(!checkObstacleCollision(enemy)){
             addToEnemys(enemy);
         }
     }
-
     public EnemyCar getNewEnemy(){
         int track = lastTrack;
-        if(streetManager.getHorizontalStreetCount() > 1){
+        if(streetManager.getHorizontalStreetCount() > 2){
             while(track == lastTrack || track == freeTrack){
                 track = random.nextInt(0, streetManager.getHorizontalStreetCount());
             }
@@ -161,13 +157,11 @@ public class ObstacleManager implements Runnable{
     }
 
     public void update(int height){
-        removeObstacles(height);
         move();
+        generateObstacles();
+        remove(height);
     }
 
-    public boolean checkCollisions(Object object){
-        return checkObstacleCollision(object);
-    }
     public boolean checkObstacleCollision(Object object){
         if(object instanceof PlayerCar){
             checkFuelTankCollision((PlayerCar) object);
@@ -187,7 +181,6 @@ public class ObstacleManager implements Runnable{
 
         return false;
     }
-
     public boolean checkBarrierCollision(Object object){
         for(Object barrier : getBarriers()){
             if(object.checkHitboxIntersection(barrier))
@@ -195,7 +188,6 @@ public class ObstacleManager implements Runnable{
         }
         return false;
     }
-
     public boolean checkFuelTankCollision(PlayerCar playerCar){
         for(Object fuelTank : getFuelTanks()){
             if(playerCar.checkHitboxIntersection(fuelTank)){
@@ -216,7 +208,6 @@ public class ObstacleManager implements Runnable{
             }
         }
     }
-
     public void checkEnemeyEnemyCollision(){
         ArrayList<EnemyCar> enemysCache = getEnemys();
         for(EnemyCar enemy1: getEnemys()) {
@@ -231,7 +222,7 @@ public class ObstacleManager implements Runnable{
         }
     }
 
-    public void removeObstacles(int height){
+    public void remove(int height){
         removeEnemys(height);
         removeBarriers(height);
         removeFuelTanks(height);
@@ -307,9 +298,7 @@ public class ObstacleManager implements Runnable{
         }
     }
     public void setBarriers(ArrayList<Object> barriers){
-        synchronized (this.barriers){
-            this.barriers = barriers;
-        }
+        this.barriers = barriers;
     }
     public void addToBarriers(Object barrier){
         synchronized (barriers){
@@ -318,7 +307,7 @@ public class ObstacleManager implements Runnable{
     }
     public void removeFromBarriers(Object barrier){
         synchronized (barriers){
-            barriers.add(barrier);
+            barriers.remove(barrier);
         }
     }
     public Object getBarrier(int index){
@@ -334,9 +323,7 @@ public class ObstacleManager implements Runnable{
         }
     }
     public void setEnemys(ArrayList<EnemyCar> enemys){
-        synchronized (this.enemys){
-            this.enemys = enemys;
-        }
+        this.enemys = enemys;
     }
     public void addToEnemys(EnemyCar enemy){
         synchronized (enemys){
@@ -361,9 +348,7 @@ public class ObstacleManager implements Runnable{
         }
     }
     public void setFuelTanks(ArrayList<Object> fuelTanks){
-        synchronized (this.fuelTanks){
-            this.fuelTanks = fuelTanks;
-        }
+        this.fuelTanks = fuelTanks;
     }
     public void addToFuelTanks(Object fuelTank){
         synchronized (fuelTanks){

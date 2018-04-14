@@ -1,30 +1,28 @@
 package de.Alex2804.objects.cars;
 
 import de.Alex2804.StreetManager;
-import de.Alex2804.objects.Street;
 
 import java.awt.event.KeyEvent;
 
 public class PlayerCar extends Car{
     private static String imagePath = "res/car.png";
 
-    double forwardSpeedDefault = -10;
-    double slowDownSpeedDefault = -2;
-    double horizontalSpeedDefault = 3;
-    double baseSpeed = -4;
-    double angle = 0;
-    StreetManager streetManager;
+    private double speedDefaultForward = -10;
+    private double speedDefaultSlowDown = -2;
+    private double speedDefaultHorizontal = 3;
+    private double speedDefaultBase = -4;
+    private StreetManager streetManager;
 
-    boolean leftKey = false;
-    boolean rightKey = false;
-    boolean upKey = false;
-    boolean downKey = false;
-    String horizontalKey = "none";
-    String verticalKey = "none";
+    private boolean keyLeft = false;
+    private boolean keyRight = false;
+    private boolean keyUp = false;
+    private boolean keyDown = false;
+    private String keyHorizontal = "none";
+    private String keyVertical = "none";
 
-    static double maxFuel = 100;
-    static double maxDistance = 10000;
-    double fuel = maxFuel;
+    private static double fuelMax = 100;
+    private static double fuelMaxDistance = 10000;
+    private double fuel = fuelMax;
 
     public PlayerCar(double x, double y, StreetManager streetManager){
         super(x, y, PlayerCar.imagePath);
@@ -36,43 +34,43 @@ public class PlayerCar extends Car{
         return Math.round(fuel);
     }
     public double getFuelPercent(){
-        return getFuel()/(getMaxFuel()/100);
+        return getFuel()/(getFuelMax()/100);
     }
     public void fillFuel(){
-        fuel = getMaxFuel();
+        fuel = getFuelMax();
     }
     public void setFuel(double fuel){
-        this.fuel = (fuel > getMaxFuel()) ? getMaxFuel() : fuel;
+        this.fuel = (fuel > getFuelMax()) ? getFuelMax() : fuel;
     }
-    public static double getMaxFuel(){
-        return maxFuel;
+    public static double getFuelMax(){
+        return fuelMax;
     }
-    public static double getMaxDistance(){
-        return maxDistance;
+    public static double getFuelMaxDistance(){
+        return fuelMaxDistance;
     }
 
     @Override
     public void moveRelativeVertical(double yDif, double verticalMovement) {
         super.moveRelativeVertical(yDif, verticalMovement);
-        fuel -= Math.abs(yDif)*(getMaxFuel()/getMaxDistance());
+        fuel -= Math.abs(yDif)*(getFuelMax()/ getFuelMaxDistance());
     }
 
     public void updateSpeed() {
-        if (horizontalKey.equals("left")){
-            setHorizontalSpeed(-horizontalSpeedDefault);
+        if (keyHorizontal.equals("left")){
+            setHorizontalSpeed(-speedDefaultHorizontal);
         }
-        else if (horizontalKey.equals("right")) {
-            setHorizontalSpeed(horizontalSpeedDefault);
+        else if (keyHorizontal.equals("right")) {
+            setHorizontalSpeed(speedDefaultHorizontal);
         }
-        else if(horizontalKey.equals("none"))
+        else if(keyHorizontal.equals("none"))
             setHorizontalSpeed(0);
 
-        if(verticalKey.equals("up"))
-            setVerticalSpeed(forwardSpeedDefault);
-        else if (verticalKey.equals("down"))
-            setVerticalSpeed(slowDownSpeedDefault);
-        else if(verticalKey.equals("none"))
-            setVerticalSpeed(baseSpeed);
+        if(keyVertical.equals("up"))
+            setVerticalSpeed(speedDefaultForward);
+        else if (keyVertical.equals("down"))
+            setVerticalSpeed(speedDefaultSlowDown);
+        else if(keyVertical.equals("none"))
+            setVerticalSpeed(speedDefaultBase);
 
     }
 
@@ -86,37 +84,37 @@ public class PlayerCar extends Car{
         int key = e.getKeyCode();
 
         if(key == KeyEvent.VK_LEFT)
-            leftKey = false;
+            keyLeft = false;
         if(key == KeyEvent.VK_RIGHT)
-            rightKey = false;
+            keyRight = false;
         if(key == KeyEvent.VK_UP)
-            upKey= false;
+            keyUp = false;
         if(key == KeyEvent.VK_DOWN)
-            downKey = false;
+            keyDown = false;
 
         if(key == KeyEvent.VK_LEFT)
-            if (horizontalKey.equals("left") && rightKey)
-                horizontalKey = "right";
-            else if (horizontalKey.equals("left"))
-                horizontalKey = "none";
+            if (keyHorizontal.equals("left") && keyRight)
+                keyHorizontal = "right";
+            else if (keyHorizontal.equals("left"))
+                keyHorizontal = "none";
 
         if(key == KeyEvent.VK_RIGHT)
-            if (horizontalKey.equals("right") && leftKey)
-                horizontalKey = "left";
-            else if (horizontalKey.equals("right"))
-                horizontalKey = "none";
+            if (keyHorizontal.equals("right") && keyLeft)
+                keyHorizontal = "left";
+            else if (keyHorizontal.equals("right"))
+                keyHorizontal = "none";
 
         if(key == KeyEvent.VK_UP)
-            if (verticalKey.equals("up") && downKey)
-                verticalKey = "down";
-            else if (verticalKey.equals("up"))
-                verticalKey = "none";
+            if (keyVertical.equals("up") && keyDown)
+                keyVertical = "down";
+            else if (keyVertical.equals("up"))
+                keyVertical = "none";
 
         if(key == KeyEvent.VK_DOWN)
-            if (verticalKey.equals("down") && upKey)
-                verticalKey = "up";
-            else if (verticalKey.equals("down"))
-                verticalKey = "none";
+            if (keyVertical.equals("down") && keyUp)
+                keyVertical = "up";
+            else if (keyVertical.equals("down"))
+                keyVertical = "none";
 
         updateSpeed();
     }
@@ -124,20 +122,20 @@ public class PlayerCar extends Car{
         int key = e.getKeyCode();
 
         if(key == KeyEvent.VK_LEFT){
-            horizontalKey = "left";
-            leftKey = true;
+            keyHorizontal = "left";
+            keyLeft = true;
         }
         if(key == KeyEvent.VK_RIGHT){
-            horizontalKey = "right";
-            rightKey = true;
+            keyHorizontal = "right";
+            keyRight = true;
         }
         if(key == KeyEvent.VK_UP){
-            verticalKey = "up";
-            upKey = true;
+            keyVertical = "up";
+            keyUp = true;
         }
         if(key == KeyEvent.VK_DOWN){
-            verticalKey = "down";
-            downKey = true;
+            keyVertical = "down";
+            keyDown = true;
         }
 
         updateSpeed();

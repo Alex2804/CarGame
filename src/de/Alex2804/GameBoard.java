@@ -43,11 +43,10 @@ public class GameBoard extends JPanel implements ActionListener{
         streetManager.update();
 
         obstacles.update(getHeight());
-        obstacles.test();
 
         car.update();
 
-        if(!carOnRoad() || obstacles.checkCollisions(car)){
+        if(!carOnRoad() || obstacles.checkObstacleCollision(car)){
             timer.stop();
         }
 
