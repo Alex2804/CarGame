@@ -1,15 +1,15 @@
-package de.Alex2804.objects.cars;
+package de.alex0606.objects.cars;
 
 
-import de.Alex2804.StreetManager;
-import de.Alex2804.objects.Street;
+import de.alex0606.StreetManager;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.*;
+import java.awt.geom.Area;
+import java.awt.image.BufferedImage;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class EnemyCar extends Car{
+    private static Area hitbox;
     private static String imagePath = "res/car.png";
 
     private int track = -1;
@@ -37,6 +37,10 @@ public class EnemyCar extends Car{
         setHorizontalSpeed(horizontalSpeed);
         setVerticalSpeed(verticalSpeed);
         this.track = track;
+        if(hitbox == null) {
+            hitbox = createPixelHitbox();
+        }
+        setHitboxArea(hitbox);
     }
 
     public void update(){

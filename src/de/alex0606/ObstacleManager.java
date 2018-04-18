@@ -1,8 +1,8 @@
-package de.Alex2804;
+package de.alex0606;
 
-import de.Alex2804.objects.Object;
-import de.Alex2804.objects.cars.EnemyCar;
-import de.Alex2804.objects.cars.PlayerCar;
+import de.alex0606.objects.Object;
+import de.alex0606.objects.cars.EnemyCar;
+import de.alex0606.objects.cars.PlayerCar;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,16 +21,16 @@ public class ObstacleManager implements Runnable{
     private ThreadLocalRandom random = ThreadLocalRandom.current();
 
     private double nextEnemy = 0;
-    private double nextEnemyMin = 0; // in milliseconds
-    private double nextEnemyMax = 25000;
+    public double nextEnemyMin = 0; // in millisekunden, zeit pro spur
+    public double nextEnemyMax = 25000; // in millisekunden, zeit pro spur
     private double enemyTime = 0;
-    private double enemyTimeStart = 0;
 
     private int lastTrack = -1;
     private int freeTrack = -1;
     private double changeFreeTrack = 2000;
     private double freeTrackTime = 0;
-    private double freeTrackTimeStart = 0;
+
+    private double timeStart = 0;
 
     private double changeTrackTime = 0;
     private double changeTrackTimeStart = 0;
@@ -82,7 +82,7 @@ public class ObstacleManager implements Runnable{
 
     public void generateObstacles() {
         newFuelTank += streetManager.getSpeed();
-        if(newFuelTank >= newFuelTankDistance){
+        if(newFuelTank >= newFuelTankDistance / ((int)(streetManager.getHorizontalStreetCount() * 0.1) + 1)){
             if(newFuelTankDistance + newFuelTankDistanceAdditive < newFuelTankDistanceMax){
                 newFuelTankDistance += newFuelTankDistanceAdditive;
             }
@@ -90,15 +90,15 @@ public class ObstacleManager implements Runnable{
             addNewFuelTank();
         }
 
-        freeTrackTime += (System.currentTimeMillis() - freeTrackTimeStart);
-        freeTrackTimeStart = System.currentTimeMillis();
+        freeTrackTime += (System.currentTimeMillis() - timeStart);
+        enemyTime += (System.currentTimeMillis() - timeStart);
+        timeStart = System.currentTimeMillis();
+
         if(freeTrackTime >= changeFreeTrack){
             freeTrack = random.nextInt(0, streetManager.getHorizontalStreetCount());
             freeTrackTime = 0;
         }
 
-        enemyTime += (System.currentTimeMillis() - enemyTimeStart);
-        enemyTimeStart = System.currentTimeMillis();
         if(enemyTime >= nextEnemy){
             addNewEnemy();
             enemyTime = 0;
@@ -121,7 +121,7 @@ public class ObstacleManager implements Runnable{
     public void addNewFuelTank(){
         Object fuelTank = new Object(0, 0, "res/fueltank.png");
         //int track = random.nextInt(0, streetManager.getHorizontalStreetCount());
-        int track = freeTrack >= 0 ? freeTrack : random.nextInt(0, streetManager.getHorizontalStreetCount());
+        int track = random.nextInt(0, streetManager.getHorizontalStreetCount());
         double x = streetManager.getXAdditive() + StreetManager.getSampleStreet().getWidth() * track +
                 (0.5 * streetManager.getSampleStreet().getWidth() - 0.5 * fuelTank.getWidth());
         double y = - (fuelTank.getHeight() + 200);
@@ -150,7 +150,7 @@ public class ObstacleManager implements Runnable{
 
         int y = -200;
         double horizontalSpeed = 0;
-        double verticalSpeed = random.nextDouble(-streetManager.getSpeed() + 1, -streetManager.getSpeed() + 3);
+        double verticalSpeed = random.nextDouble(-4, -2);
 
         EnemyCar enemy = new EnemyCar(x, y, streetManager, horizontalSpeed, verticalSpeed, track);
         return enemy;

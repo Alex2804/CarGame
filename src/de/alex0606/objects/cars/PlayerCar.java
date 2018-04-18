@@ -1,15 +1,26 @@
-package de.Alex2804.objects.cars;
+package de.alex0606.objects.cars;
 
-import de.Alex2804.StreetManager;
+import de.alex0606.StreetManager;
+import sun.awt.geom.AreaOp;
+import sun.awt.geom.Curve;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.awt.geom.PathIterator;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class PlayerCar extends Car{
-    private static String imagePath = "res/car.png";
+    private static String imagePath = "res/playercar.png";
+    private static Area hitbox;
 
     private double speedDefaultForward = -10;
     private double speedDefaultSlowDown = -2;
-    private double speedDefaultHorizontal = 3;
+    private double speedDefaultHorizontal = 4;
     private double speedDefaultBase = -4;
     private StreetManager streetManager;
 
@@ -28,6 +39,10 @@ public class PlayerCar extends Car{
         super(x, y, PlayerCar.imagePath);
         this.streetManager = streetManager;
         updateSpeed();
+        if(hitbox == null){
+            hitbox = createPixelHitbox();
+        }
+        setHitboxArea(hitbox);
     }
 
     public double getFuel(){
@@ -77,8 +92,6 @@ public class PlayerCar extends Car{
     public void update() {
         moveRelative(getHorizontalSpeed(), getVerticalSpeed(), 0, streetManager.getSpeed());
     }
-
-
 
     public void keyReleased(KeyEvent e){
         int key = e.getKeyCode();

@@ -1,7 +1,6 @@
-package de.Alex2804;
+package de.alex0606;
 
-import de.Alex2804.objects.Street;
-import de.Alex2804.objects.cars.Car;
+import de.alex0606.objects.Street;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,7 +43,7 @@ public class StreetManager {
         setXAdditive(spacing + ((width % streetWidth) / 2));
 
         for(int i = 0; i < getHorizontalStreetCount(); i++){
-            for(int j = -1; j <= getVerticalStreetCount(); j++){
+            for(int j = -2; j <= getVerticalStreetCount(); j++){
                 Street street = new Street(getXAdditive() + i * streetWidth, j * streetHeight + y);
                 streets.add(street);
             }
@@ -78,6 +77,9 @@ public class StreetManager {
     public double getY(){
         return y;
     }
+    public void setY(double y){
+        this.y = y;
+    }
     public int getXAdditive(){
         return xAdditive;
     }
@@ -87,11 +89,12 @@ public class StreetManager {
 
     public void move(){
         y += speed;
-        if(y % sampleStreet.getHeight() == 0){
-            y = 0;
+        if(y / sampleStreet.getHeight() >= 1){
+            setY(y % sampleStreet.getHeight());
 
             for(Street street : streets){
                 street.moveVertical(speed - sampleStreet.getHeight());
+                street.setY(street.getY() + getY());
             }
         }
         else{
@@ -105,15 +108,15 @@ public class StreetManager {
         move();
     }
 
-    public void draw(Graphics2D g2d){
+    public void draw(Graphics g){
         for(Street street : streets){
-            g2d.drawImage(street.getImage(), street.getX(), street.getY(), panel);
+            g.drawImage(street.getImage(), street.getX(), street.getY(), panel);
         }
     }
-    public void draw(Graphics2D g2d, JPanel observer){
+    public void draw(Graphics g, JPanel observer){
         if(observer.getWidth() == panel.getWidth() && observer.getHeight() == panel.getHeight()){
             for(Street street : streets){
-                g2d.drawImage(street.getImage(), street.getX(), street.getY(), observer);
+                g.drawImage(street.getImage(), street.getX(), street.getY(), observer);
             }
         }
     }

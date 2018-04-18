@@ -1,48 +1,106 @@
-package de.Alex2804.objects;
+package de.alex0606.objects;
+
+import de.alex0606.MainWindow;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.Buffer;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
-public class Object {
+public class Object{
     private double x = 0;
     private double y = 0;
     private int width = 0;
     private int height = 0;
     private boolean visible = true;
-    private Image image;
+    private BufferedImage image;
+    private Area hitboxArea;
 
     public Object(){ }
     public Object(double x, double y){
-        initVars(x, y, visible);
+        initVars(x, y, visible, null, false);
     }
     public Object(double x, double y, boolean visible){
-        initVars(x, y, visible);
+        initVars(x, y, visible, null, false);
     }
     public Object(double x, double y, String imagePath) {
-        initVars(x, y, visible);
-        setImage(imagePath);
+        initVars(x, y, visible, imagePath, false);
     }
     public Object(double x, double y, boolean visible, String imagePath) {
-        initVars(x, y, visible);
-        setImage(imagePath);
+        initVars(x, y, visible, imagePath, false);
     }
-    private void initVars(double x, double y, boolean visible){
+    public Object(double x, double y, String imagePath, boolean pixelHitbox) {
+        initVars(x, y, visible, imagePath, pixelHitbox);
+    }
+    public Object(double x, double y, boolean visible, String imagePath, boolean pixelHitbox) {
+        initVars(x, y, visible, imagePath, pixelHitbox);
+    }
+    private void initVars(double x, double y, boolean visible, String imagePath, boolean pixelHitbox){
         this.x = x;
         this.y = y;
         this.visible = visible;
+        if(imagePath != null){
+            setImage(imagePath);
+            if(pixelHitbox){
+                hitboxArea = createPixelHitbox();
+            }
+        }
+    }
+    public Area createPixelHitbox(){
+        Area area = new Area();
+
+        BufferedImage image = getImage();
+
+        for(int x = 0; x < image.getWidth(); x++){
+            for(int y = 0; y < image.getHeight(); y++){
+                if(!(image.getRGB(x, y)>>24==0x00)){
+                    area.add(new Area(new Rectangle(x, y, 1, 1)));
+                }
+            }
+        }
+        return area;
+    }
+    public void setHitboxArea(Area hitboxArea) {
+        this.hitboxArea = hitboxArea;
     }
 
+    public Area getHitboxArea() {
+        return hitboxArea;
+    }
 
     public void setImage(String imagePath){
-        ImageIcon icon = new ImageIcon(imagePath);
-        setImage(icon.getImage());
+        BufferedImage image = null;
+        try {
+            image = ImageIO.read(new File(imagePath));
+        }catch (IOException e){
+            System.out.println("Image " + imagePath + " not Found!");
+        }
+        setImage(image);
     }
-    public void setImage(Image image){
-        this.image = image;
+    public void setImage(BufferedImage image){
+        int w = image.getWidth();
+        int h = image.getHeight();
+        double scale = MainWindow.scale;
+        // Create a new image of the proper size
+        int w2 = (int) (w * scale);
+        int h2 = (int) (h * scale);
+        BufferedImage scaledImage = new BufferedImage(w2, h2, BufferedImage.TYPE_INT_ARGB);
+        AffineTransform scaleInstance = AffineTransform.getScaleInstance(scale, scale);
+        AffineTransformOp scaleOp = new AffineTransformOp(scaleInstance, AffineTransformOp.TYPE_BILINEAR);
+
+        scaleOp.filter(image, scaledImage);
+
+        this.image = scaledImage;
+
         updateDimensions();
     }
-    public Image getImage(){
+    public BufferedImage getImage(){
         return image;
     }
     private void updateDimensions(){
@@ -135,7 +193,12 @@ public class Object {
     }
 
     public Area getHitbox(){
-        return new Area(getBoundingRect());
+        if(hitboxArea == null){
+            return new Area(getBoundingRect());
+        }
+        else {
+            return hitboxArea.createTransformedArea(AffineTransform.getTranslateInstance(getX(), getY()));
+        }
     }
 
     public boolean checkHitboxIntersection(Area hitbox){

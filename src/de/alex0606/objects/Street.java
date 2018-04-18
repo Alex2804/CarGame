@@ -1,4 +1,4 @@
-package de.Alex2804.objects;
+package de.alex0606.objects;
 
 public class Street extends Object {
     private static String imagePath = "res/street.png";
