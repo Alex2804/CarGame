@@ -14,8 +14,8 @@ public class StreetManager {
 
     private double y = 0;
     private JPanel panel;
-    private double speed = 5;
-    private int spacing = 30;
+    private double speed = Math.round(((5*MainWindow.scale)*10)/10);
+    private int spacing = (int)(30*MainWindow.scale);
     private int xAdditive = 0;
     private int horizontalStreetCount = 0;
     private int verticalStreetCount = 0;

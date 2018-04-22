@@ -1,10 +1,12 @@
 package de.alex0606.panels;
 
+import de.alex0606.MainWindow;
 import de.alex0606.ObstacleManager;
 import de.alex0606.StreetManager;
 import de.alex0606.objects.cars.*;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.event.*;
@@ -12,9 +14,9 @@ import java.util.ArrayList;
 
 
 public class GameBoard extends JPanel implements ActionListener{
-    private ArrayList<GameBoardListener> gameBoardListeners = new ArrayList<GameBoardListener>();
-    public void addListener(GameBoardListener listener){
-        gameBoardListeners.add(listener);
+    private ArrayList<Listener> listener = new ArrayList<Listener>();
+    public void addListener(Listener listener){
+        this.listener.add(listener);
     }
 
     public StreetManager streetManager = new StreetManager(this);
@@ -46,9 +48,16 @@ public class GameBoard extends JPanel implements ActionListener{
         gameTimer = new Timer(timerSpeed, this);
         startTimer = new Timer(timerSpeed, this);
     }
+    public void copy(GameBoard gameBoard){
+        this.streetManager = gameBoard.streetManager;
+        this.car = gameBoard.car;
+        this.obstacles = gameBoard.obstacles;
+        this.fuelBelowCar = gameBoard.fuelBelowCar;
+        this.score = score;
+    }
 
     public void initializeStart(){
-        for(GameBoardListener listener : gameBoardListeners){
+        for(Listener listener : listener){
             listener.gameStartInitialized();
         }
         reset();
@@ -57,19 +66,21 @@ public class GameBoard extends JPanel implements ActionListener{
         startTimer.start();
     }
     public void startGame(){
-        for(GameBoardListener listener : gameBoardListeners){
+        for(Listener listener : listener){
             listener.gameStarted();
         }
         reset();
         gameTimer.start();
     }
     public void reset(){
+        gameOver = false;
         obstacles = new ObstacleManager(streetManager);
         car.moveTo((getWidth()/2) - (car.getWidth()/2), getHeight() * 0.6);
     }
     public void gameOver(){
+        gameOver = true;
         gameTimer.stop();
-        for(GameBoardListener listener : gameBoardListeners){
+        for(Listener listener : listener){
             listener.gameOver();
         }
     }
@@ -78,8 +89,17 @@ public class GameBoard extends JPanel implements ActionListener{
     }
     public void pause(){
         gameTimer.stop();
-        for(GameBoardListener listener : gameBoardListeners){
+        startTimer.stop();
+        for(Listener listener : listener){
             listener.gamePaused();
+        }
+
+    }
+    public void continueGame(){
+        if(startTimerTime > -1000) {
+            startTimer.start();
+        }else if(startTimerTime <= -1000){
+            gameTimer.start();
         }
     }
 
@@ -129,9 +149,6 @@ public class GameBoard extends JPanel implements ActionListener{
 
         //Hindernisse zeichnen
         obstacles.draw(g2d, this);
-        for(EnemyCar enemy : obstacles.getEnemys()){
-            g2d.draw(enemy.getHitbox());
-        }
 
         //Auto zeichnen
         drawCar(g2d);
@@ -162,26 +179,27 @@ public class GameBoard extends JPanel implements ActionListener{
         g2d.draw(car.getHitbox());
     }
     public void drawFuel(Graphics2D g2d){
-        g2d.setStroke(new BasicStroke(1));
-        g2d.setColor(new Color(0xFFFB17));
-        g2d.drawRect(10, 10, 101,20);
-        g2d.setColor(new Color((int)(255 - (car.getFuelPercent() * (255/100))), (int)(car.getFuelPercent() * (255/100)),0));
-        g2d.fillRect(11, 11, (int)car.getFuelPercent(), 19);
+        int width = 100;
+        int height = 15;
+        int x = 10;
+        int y = 10;
+            
+        drawFuel(g2d, x, y, width, height, car.getFuelPercent());
 
         if(fuelBelowCar){
-            int fuel = (int)car.getFuel();
-            int widht = 100;
-            int height = 15;
-            int x = car.getX() - widht / 2 + car.getWidth()/2;
-            int y = car.getY() + car.getHeight() + 20;
-            //Tankfüllung zeichnen
-            g2d.setStroke(new BasicStroke(1));
-            g2d.setColor(new Color(0xFFFB17));
-            g2d.drawRect(x, y, widht + 1,height);
-            g2d.setColor(new Color(0, 255, 0));
-            g2d.setColor(new Color((int)(255 - (car.getFuelPercent() * (255/100))), (int)(car.getFuelPercent() * (255/100)),0));
-            g2d.fillRect(x + 1, y + 1, (int)(fuel)*(widht/100), height - 1);
+            x = car.getX() - (int)(width*MainWindow.scale) / 2 + car.getWidth()/2;
+            y = car.getY() + car.getHeight() + 20;
+            drawFuel(g2d, x, y, width, height, car.getFuelPercent());
         }
+    }
+    public void drawFuel(Graphics2D g2d, int x, int y, int width, int height, double fuelPercent){
+    	width *= MainWindow.scale;
+    	height *= MainWindow.scale;
+    	g2d.setStroke(new BasicStroke(1));
+    	g2d.setColor(new Color(0, 0, 0));
+    	g2d.drawRect(x,  y,  width, height);
+    	g2d.setColor(new Color((int)(255-fuelPercent*(255/100)), (int)(fuelPercent*(255/100)), 0));
+    	g2d.fillRect(x+1, y+1, (int)(fuelPercent*(width/100D))-1, height-1);
     }
     public void drawStartCounter(Graphics2D g2d){
         String text = startTimerTime > 0 ? Integer.toString((int)startTimerTime/1000) : "Drive!!!";

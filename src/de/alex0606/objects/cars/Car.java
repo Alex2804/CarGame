@@ -1,5 +1,6 @@
 package de.alex0606.objects.cars;
 
+import de.alex0606.MainWindow;
 import de.alex0606.objects.Object;
 
 import java.awt.*;
@@ -19,14 +20,14 @@ public abstract class Car extends Object{
     }
 
     public void setHorizontalSpeed(double horizontalSpeed){
-        this.horizontalSpeed = horizontalSpeed;
+        this.horizontalSpeed = horizontalSpeed*MainWindow.scale;
     }
     public double getHorizontalSpeed(){
         return horizontalSpeed;
     }
 
     public void setVerticalSpeed(double verticalSpeed){
-        this.verticalSpeed = verticalSpeed;
+        this.verticalSpeed = verticalSpeed*MainWindow.scale;
     }
     public double getVerticalSpeed(){
         return verticalSpeed;
