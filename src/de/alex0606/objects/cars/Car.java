@@ -18,6 +18,9 @@ public abstract class Car extends Object{
     public Car(double x, double y, String imagePath){
         super(x, y, true, imagePath);
     }
+    public Car(double x, double y, String imagePath, String hitboxPath){
+        super(x, y, true, imagePath, hitboxPath);
+    }
 
     public void setHorizontalSpeed(double horizontalSpeed){
         this.horizontalSpeed = horizontalSpeed*MainWindow.scale;

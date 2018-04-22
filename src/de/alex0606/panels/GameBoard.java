@@ -4,6 +4,7 @@ import de.alex0606.MainWindow;
 import de.alex0606.ObstacleManager;
 import de.alex0606.StreetManager;
 import de.alex0606.objects.cars.*;
+import sun.applet.Main;
 
 import javax.swing.*;
 
@@ -149,6 +150,10 @@ public class GameBoard extends JPanel implements ActionListener{
 
         //Hindernisse zeichnen
         obstacles.draw(g2d, this);
+        g2d.setStroke(new BasicStroke(1));
+        for(EnemyCar enemy : obstacles.getEnemys()){
+            g2d.draw(enemy.getHitbox());
+        }
 
         //Auto zeichnen
         drawCar(g2d);
@@ -165,10 +170,10 @@ public class GameBoard extends JPanel implements ActionListener{
         streetManager.draw(g2d, this);
 
         //Seitenstreifen
-        Rectangle sr = streetManager.getBoundingRect();
-        Rectangle rect = new Rectangle(sr.x, sr.y - 20, sr.width, sr.height + 40);
+        Rectangle bounds = streetManager.getBoundingRect();
+        Rectangle rect = new Rectangle(bounds.x, bounds.y - 20, bounds.width, bounds.height + 40);
         g2d.setColor(new Color(255, 255, 255));
-        g2d.setStroke(new BasicStroke(4));
+        g2d.setStroke(new BasicStroke((int)(4*MainWindow.scale)));
         g2d.draw(rect);
     }
     public void drawCar(Graphics2D g2d){
@@ -181,14 +186,14 @@ public class GameBoard extends JPanel implements ActionListener{
     public void drawFuel(Graphics2D g2d){
         int width = 100;
         int height = 15;
-        int x = 10;
-        int y = 10;
+        int x = (int)(10*MainWindow.scale);
+        int y = (int)(10*MainWindow.scale);
             
         drawFuel(g2d, x, y, width, height, car.getFuelPercent());
 
         if(fuelBelowCar){
             x = car.getX() - (int)(width*MainWindow.scale) / 2 + car.getWidth()/2;
-            y = car.getY() + car.getHeight() + 20;
+            y = car.getY() + car.getHeight() + (int)(20*MainWindow.scale);
             drawFuel(g2d, x, y, width, height, car.getFuelPercent());
         }
     }
@@ -203,7 +208,7 @@ public class GameBoard extends JPanel implements ActionListener{
     }
     public void drawStartCounter(Graphics2D g2d){
         String text = startTimerTime > 0 ? Integer.toString((int)startTimerTime/1000) : "Drive!!!";
-        Font font = new Font("Arial", Font.BOLD, 40);
+        Font font = new Font("Arial", Font.BOLD, (int)(40*MainWindow.scale));
         g2d.setFont(font);
         FontMetrics metrics = g2d.getFontMetrics(font);
         int x = (getWidth() - metrics.stringWidth(text)) / 2;

@@ -2,15 +2,17 @@ package de.alex0606.objects.cars;
 
 
 import de.alex0606.StreetManager;
+import de.alex0606.objects.CustomArea;
 
 import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class EnemyCar extends Car{
-    private static Area hitbox;
     private static String imagePath = "res/car.png";
+    public static String hitboxPath = "res/enemycarhitbox.ser";
 
     private int track = -1;
     private int targetTrack;
@@ -21,15 +23,15 @@ public class EnemyCar extends Car{
     private StreetManager streetManager;
 
     public EnemyCar(double x, double y, StreetManager streetManager){
-        super(x, y, EnemyCar.imagePath);
+        super(x, y, EnemyCar.imagePath, EnemyCar.hitboxPath);
         initVars(streetManager, getHorizontalSpeed(), getVerticalSpeed(), track);
     }
     public EnemyCar(double x, double y, StreetManager streetManager, double horizontalSpeed, double verticalSpeed){
-        super(x, y, EnemyCar.imagePath);
+        super(x, y, EnemyCar.imagePath, EnemyCar.hitboxPath);
         initVars(streetManager, horizontalSpeed, verticalSpeed, track);
     }
     public EnemyCar(double x, double y, StreetManager streetManager, double horizontalSpeed, double verticalSpeed, int track){
-        super(x, y, EnemyCar.imagePath);
+        super(x, y, EnemyCar.imagePath, EnemyCar.hitboxPath);
         initVars(streetManager, horizontalSpeed, verticalSpeed, track);
     }
     private void initVars(StreetManager streetManager, double horizontalSpeed, double verticalSpeed, int track){
@@ -37,10 +39,6 @@ public class EnemyCar extends Car{
         setHorizontalSpeed(horizontalSpeed);
         setVerticalSpeed(verticalSpeed);
         this.track = track;
-        if(hitbox == null) {
-            hitbox = createPixelHitbox();
-        }
-        setHitboxArea(hitbox);
     }
 
     public void update(){

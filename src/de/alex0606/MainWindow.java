@@ -8,7 +8,7 @@ import java.awt.*;
 
 public class MainWindow extends JFrame{
     public static double scale = Toolkit.getDefaultToolkit().getScreenSize().width / 1920D;
-    //public static double scale = 1280 / 1920D;
+    //public static double scale = 3840 / 1920D;
 
     public MainWindow(){
         setIconImage(new ImageIcon("res/logo.png").getImage());
@@ -42,7 +42,8 @@ public class MainWindow extends JFrame{
         catch (IllegalAccessException e) {
             // handle exception
         }
-
+        CleanSetup cs = new CleanSetup();
+        //cs.start();
         MainWindow mainWindow = new MainWindow();
     }
 }

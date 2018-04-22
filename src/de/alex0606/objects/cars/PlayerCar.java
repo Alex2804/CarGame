@@ -1,6 +1,7 @@
 package de.alex0606.objects.cars;
 
 import de.alex0606.StreetManager;
+import de.alex0606.objects.CustomArea;
 import sun.awt.geom.AreaOp;
 import sun.awt.geom.Curve;
 
@@ -11,12 +12,11 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 public class PlayerCar extends Car{
     private static String imagePath = "res/playercar.png";
-    private static Area hitbox;
+    public static String hitboxPath = "res/playercarhitbox.ser";
 
     private double speedDefaultForward = -10;
     private double speedDefaultSlowDown = -2;
@@ -36,13 +36,9 @@ public class PlayerCar extends Car{
     private double fuel = fuelMax;
 
     public PlayerCar(double x, double y, StreetManager streetManager){
-        super(x, y, PlayerCar.imagePath);
+        super(x, y, PlayerCar.imagePath, PlayerCar.hitboxPath);
         this.streetManager = streetManager;
         updateSpeed();
-        if(hitbox == null){
-            hitbox = createPixelHitbox();
-        }
-        setHitboxArea(hitbox);
     }
 
     public double getFuel(){

@@ -5,10 +5,11 @@ import de.alex0606.MainWindow;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.Buffer;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -20,7 +21,9 @@ public class Object{
     private int height = 0;
     private boolean visible = true;
     private BufferedImage image;
-    private Area hitboxArea;
+    private Area hitboxArea = null;
+
+    private String hitboxPath = null;
 
     public Object(){ }
     public Object(double x, double y){
@@ -35,22 +38,67 @@ public class Object{
     public Object(double x, double y, boolean visible, String imagePath) {
         initVars(x, y, visible, imagePath, false);
     }
+    public Object(double x, double y, boolean visible, String imagePath, String hitboxPath) {
+        initVars(x, y, visible, imagePath, false, hitboxPath);
+    }
     public Object(double x, double y, String imagePath, boolean pixelHitbox) {
         initVars(x, y, visible, imagePath, pixelHitbox);
+    }
+    public Object(double x, double y, String imagePath, String hitboxPath) {
+        initVars(x, y, visible, imagePath, false, hitboxPath);
     }
     public Object(double x, double y, boolean visible, String imagePath, boolean pixelHitbox) {
         initVars(x, y, visible, imagePath, pixelHitbox);
     }
     private void initVars(double x, double y, boolean visible, String imagePath, boolean pixelHitbox){
+        initVars(x, y, visible, imagePath, pixelHitbox, null);
+    }
+    private void initVars(double x, double y, boolean visible, String imagePath, boolean pixelHitbox, String hitboxPath){
         this.x = x;
         this.y = y;
         this.visible = visible;
+        this.hitboxPath = hitboxPath;
         if(imagePath != null){
             setImage(imagePath);
-            if(pixelHitbox){
-                hitboxArea = createPixelHitbox();
+            if(pixelHitbox || hitboxPath != null){
+                setHitboxArea(getPixelHitbox());
             }
         }
+    }
+    public Area getPixelHitbox(){
+        try{
+            FileInputStream fis = new FileInputStream(hitboxPath);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            Area hitboxArea = new Area((Path2D) ois.readObject());
+            ois.close();
+            fis.close();
+            return hitboxArea;
+        }catch (FileNotFoundException e){
+            System.out.println(e);
+        }catch (IOException e){
+            System.out.println(e);
+        }catch (ClassNotFoundException e){
+            System.out.println(e);
+        }
+        if(hitboxPath == null)
+            return createPixelHitbox();
+        else
+            return createWriteHitbox();
+    }
+    private Area createWriteHitbox(){
+        System.out.println("create write " + hitboxPath);
+        Area hitboxArea = createPixelHitbox();
+        try{
+            FileOutputStream fos = new FileOutputStream(hitboxPath);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(AffineTransform.getTranslateInstance(0,0).createTransformedShape(hitboxArea));
+            oos.close();
+            fos.close();
+        }catch (FileNotFoundException e){
+            System.out.println(e);
+        }catch (IOException e){
+            System.out.println(e);}
+        return hitboxArea;
     }
     public Area createPixelHitbox(){
         Area area = new Area();
@@ -197,7 +245,7 @@ public class Object{
             return new Area(getBoundingRect());
         }
         else {
-            return hitboxArea.createTransformedArea(AffineTransform.getTranslateInstance(getX(), getY()));
+            return getHitboxArea().createTransformedArea(AffineTransform.getTranslateInstance(getX(), getY()));
         }
     }
 
