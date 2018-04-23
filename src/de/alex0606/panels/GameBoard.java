@@ -27,10 +27,11 @@ public class GameBoard extends JPanel implements ActionListener{
 
     public boolean fuelBelowCar = true;
 
-    public double score = 0;
+    public int score = 0;
 
     private Timer gameTimer;
     private Timer startTimer;
+    private double streetSpeedTime = 0;
     private double startTimerTime;
     private double startTimerTimeMax = 5000;
     private double timeStart;
@@ -49,13 +50,6 @@ public class GameBoard extends JPanel implements ActionListener{
         gameTimer = new Timer(timerSpeed, this);
         startTimer = new Timer(timerSpeed, this);
     }
-    public void copy(GameBoard gameBoard){
-        this.streetManager = gameBoard.streetManager;
-        this.car = gameBoard.car;
-        this.obstacles = gameBoard.obstacles;
-        this.fuelBelowCar = gameBoard.fuelBelowCar;
-        this.score = score;
-    }
 
     public void initializeStart(){
         for(Listener listener : listener){
@@ -71,29 +65,44 @@ public class GameBoard extends JPanel implements ActionListener{
             listener.gameStarted();
         }
         reset();
+        obstacles.thread.start();
         gameTimer.start();
     }
     public void reset(){
         gameOver = false;
         obstacles = new ObstacleManager(streetManager);
         car.moveTo((getWidth()/2) - (car.getWidth()/2), getHeight() * 0.6);
+        car.reset();
+        streetManager.resetSpeed();
+        score = 0;
     }
     public void gameOver(){
-        gameOver = true;
-        gameTimer.stop();
         for(Listener listener : listener){
             listener.gameOver();
         }
+        gameOver = true;
+        obstacles.thread.interrupt();
+        gameTimer.stop();
     }
     public boolean getGameOver(){
         return gameOver;
     }
+    public void setGameOver(boolean gameOver){
+        this.gameOver = gameOver;
+    }
+    public void setScore(int score){
+        this.score = score;
+    }
+    public int getScore(){
+        return score;
+    }
     public void pause(){
-        gameTimer.stop();
-        startTimer.stop();
         for(Listener listener : listener){
             listener.gamePaused();
         }
+        obstacles.thread.interrupt();
+        gameTimer.stop();
+        startTimer.stop();
 
     }
     public void continueGame(){
@@ -101,17 +110,28 @@ public class GameBoard extends JPanel implements ActionListener{
             startTimer.start();
         }else if(startTimerTime <= -1000){
             gameTimer.start();
+            obstacles.thread.start();
         }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if(e.getSource().equals(gameTimer)){
+            score += streetManager.getSpeed();
             obstacles.update(getHeight());
             car.update();
+            streetSpeedTime += System.currentTimeMillis() - timeStart;
+            if(streetSpeedTime >= 15000){
+                if(streetManager.increaseSpeed(1)) {
+                    car.speedBase -= 1;
+                    car.speedSlowDown -= 1;
+                    car.speedForward -= 1;
+                    car.updateSpeed();
+                }
+                streetSpeedTime = 0;
+            }
         }else if(e.getSource().equals(startTimer)){
             startTimerTime -= System.currentTimeMillis() - timeStart;
-            timeStart = System.currentTimeMillis();
 
             if(startTimerTime < -1000){
                 startTimer.stop();
@@ -119,7 +139,7 @@ public class GameBoard extends JPanel implements ActionListener{
             }
             car.fillFuel();
         }
-
+        timeStart = System.currentTimeMillis();
         streetManager.update();
 
         if(!carOnRoad() || obstacles.checkObstacleCollision(car) || car.getFuel() <= 0){
@@ -142,9 +162,11 @@ public class GameBoard extends JPanel implements ActionListener{
     }
 
     @Override
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
+    public void paint(Graphics g) {
+        //super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
+        g.setColor(getBackground());
+        g.fillRect(0, 0, getWidth(), getHeight());
 
         drawStreet(g2d);
 
@@ -161,13 +183,14 @@ public class GameBoard extends JPanel implements ActionListener{
         //Tankfüllung zeichnen
         drawFuel(g2d);
 
-        if(startTimer.isRunning()){
+        if(startTimer.isRunning())
             drawStartCounter(g2d);
-        }
+        else
+            drawScore(g2d);
     }
     public void drawStreet(Graphics2D g2d){
         //Straßen zeichnen
-        streetManager.draw(g2d, this);
+        streetManager.draw(g2d);
 
         //Seitenstreifen
         Rectangle bounds = streetManager.getBoundingRect();
@@ -213,6 +236,17 @@ public class GameBoard extends JPanel implements ActionListener{
         FontMetrics metrics = g2d.getFontMetrics(font);
         int x = (getWidth() - metrics.stringWidth(text)) / 2;
         int y = ((getHeight() - metrics.getHeight()) / 2) + metrics.getAscent();
+        g2d.setColor(new Color(255,255,255));
+        g2d.drawString(text, x, y);
+    }
+    public void drawScore(Graphics2D g2d){
+        String text = Integer.toString((int)score);
+        Font font = new Font("Arial", Font.BOLD, (int)(40*MainWindow.scale));
+        g2d.setFont(font);
+        FontMetrics metrics = g2d.getFontMetrics(font);
+        int x = (getWidth() - metrics.stringWidth(text) - (int)(40*MainWindow.scale));
+        int y = ((metrics.getHeight()) + (int)(0*MainWindow.scale));
+        g2d.setColor(new Color(255,255,255));
         g2d.drawString(text, x, y);
     }
 

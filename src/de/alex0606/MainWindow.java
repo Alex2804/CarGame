@@ -15,7 +15,7 @@ public class MainWindow extends JFrame{
 
     public MainWindow(){
         setIconImage(new ImageIcon("res/logo.png").getImage());
-        setResizable(true);
+        setResizable(false);
 
         int width = 600;
         int height = 1000;
@@ -23,14 +23,15 @@ public class MainWindow extends JFrame{
         double scale = size.height / 1200D;
         this.scale *= scale;
         setPreferredSize(new Dimension((int)(width*this.scale), (int)(height*this.scale)));
+        setMinimumSize(getPreferredSize());
         pack();
 
         PanelManager panelManager = new PanelManager();
         add(panelManager);
 
-    setVisible(true);
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-}
+        setVisible(true);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
 
     public static void main(String args[]){
         try {

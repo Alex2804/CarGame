@@ -11,87 +11,77 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.lang.Thread;
 
 public class ObstacleManager implements Runnable{
-    private EnemyCar sampleEnemey;
+    private EnemyCar sampleEnemey; //EnemyCar to get dimensions
 
-    private ArrayList<EnemyCar> enemys;
-    private ArrayList<Object> barriers;
-    private ArrayList<Object> fuelTanks;
-    private StreetManager streetManager;
+    private ArrayList<EnemyCar> enemys; //holds all enemys
+    private ArrayList<Object> barriers; //holds all barriers
+    private ArrayList<Object> fuelTanks; //holds all fuel tanks
+    private StreetManager streetManager; //holds reference to streetManager
 
     private ThreadLocalRandom random = ThreadLocalRandom.current();
 
-    private double nextEnemy = 0;
-    public double nextEnemyMin = 0; // in millisekunden, zeit pro spur
-    public double nextEnemyMax = 25000; // in millisekunden, zeit pro spur
-    private double enemyTime = 0;
+    private double nextEnemy = 0; //time until next enemy spawns
+    public double nextEnemyMin = 0; // in milliseconds, time per lane
+    public double nextEnemyMax = 25000; // in milliseconds, time per lane
+    private double enemyTime = 0; //time since last enemy spawn
 
-    private int lastTrack = -1;
-    private int freeTrack = -1;
-    private double changeFreeTrack = 2000;
-    private double freeTrackTime = 0;
+    private int lastTrack = -1; //last track that was a obstacle
+    private int freeTrack = -1; //track that is free for an amount of time
+    private double changeFreeTrack = 2000; //time until freeTrack changes
+    private double freeTrackTime = 0; //time since freeTrack was changed
 
-    private double timeStart = 0;
+    private double timeStart = 0; //caches current time to calculate the time since last gameloop repeat
 
-    private double changeTrackTime = 0;
-    private double changeTrackTimeStart = 0;
-    private double changeTrackTimeMin = 8000;
-    private double changeTrackTimeMax = 20000;
-    private double changeTrack = changeTrackTimeMax;
+    private double changeTrackTime = 0; //time since last lane change
+    private double changeTrackTimeMin = 8000; //minimum time until next lane change
+    private double changeTrackTimeMax = 20000; //minimum time untli next lane change
+    private double changeTrack = changeTrackTimeMax; //time until EnemyCar changes track
 
-    private double newFuelTankDistanceMin = PlayerCar.getFuelMaxDistance() * 0.2;
-    private double newFuelTankDistance = newFuelTankDistanceMin;
-    private double newFuelTankDistanceMax = PlayerCar.getFuelMaxDistance() * 0.95;
-    private double newFuelTank = 0;
-    private double newFuelTankDistanceAdditive = PlayerCar.getFuelMaxDistance() * 0.01;
+    private double newFuelTankDistanceMin = PlayerCar.getFuelMaxDistance() * 0.2; //minimal distance until fueltank is generated
+    private double newFuelTankDistance = newFuelTankDistanceMin; //distance until new fueltank is generated
+    private double newFuelTankDistanceMax = PlayerCar.getFuelMaxDistance() * 0.95; //maximum distance until fueltank is generated
+    private double newFuelTank = 0; //distance since fueltank was generated
+    private double newFuelTankDistanceAdditive = PlayerCar.getFuelMaxDistance() * 0.02; //distance, added to the distance after which a new fueltank gets generated, after every new fueltank
 
-    private Thread thread = new Thread(this);
-    private int threadSpeed = 100;
+    public Thread thread = new Thread(this); //thread in which hitbox intersection of obstacles under each other gets checked
+    private int threadSpeed = 200; //delay of the thread
 
     public ObstacleManager(StreetManager streetManager){
-        init(streetManager, new ArrayList<EnemyCar>(), new ArrayList<Object>());
+        init(streetManager, new ArrayList<EnemyCar>(), new ArrayList<Object>()); //new ObstacleManager with no enemys and barriers
     }
     public ObstacleManager(StreetManager streetManager, ArrayList<EnemyCar> enemys, ArrayList<Object> barriers){
-        init(streetManager, enemys, barriers);
+        init(streetManager, enemys, barriers); //new ObstacleManager with given enemys and barriers
     }
-    private void init(StreetManager streetManager, ArrayList<EnemyCar> enemys, ArrayList<Object> barriers){
+    private void init(StreetManager streetManager, ArrayList<EnemyCar> enemys, ArrayList<Object> barriers){ //initialize params with given values, called by constructors
         setEnemys(enemys);
         setBarriers(barriers);
         this.streetManager = streetManager;
         sampleEnemey = new EnemyCar(0, 0, streetManager);
         setFuelTanks(new ArrayList<>());
-        changeTrackTimeStart = System.currentTimeMillis();
-        thread.start();
+        timeStart = System.currentTimeMillis(); //reset time
     }
 
     @Override
     public void run() {
-        while (true) {
-            checkEnemeyEnemyCollision();
-            checkEnemyBarrierCollision();
-
+        while (true) { //run as long as thread is not interrupted and ObstacleManager is alive
             try {
-                Thread.sleep(threadSpeed);
+                checkEnemeyEnemyCollision(); //checks if enemys collide under each other
+                checkEnemyBarrierCollision(); //checks if enemys collide with barriers
+
+                Thread.sleep(threadSpeed); //sleeps, for delay
             } catch (InterruptedException e) {
 
                 String msg = String.format("Thread interrupted: %s", e.getMessage());
-
                 System.out.println(msg);
             }
         }
     }
 
     public void generateObstacles() {
-        newFuelTank += streetManager.getSpeed();
-        if(newFuelTank >= newFuelTankDistance / ((int)(streetManager.getHorizontalStreetCount() * 0.1) + 1)){
-            if(newFuelTankDistance + newFuelTankDistanceAdditive < newFuelTankDistanceMax){
-                newFuelTankDistance += newFuelTankDistanceAdditive;
-            }
-            newFuelTank = 0;
-            addNewFuelTank();
-        }
-
+        //increase times since last repeat
         freeTrackTime += (System.currentTimeMillis() - timeStart);
         enemyTime += (System.currentTimeMillis() - timeStart);
+        changeTrackTime += (System.currentTimeMillis() - timeStart);
         timeStart = System.currentTimeMillis();
 
         if(freeTrackTime >= changeFreeTrack){
@@ -106,8 +96,6 @@ public class ObstacleManager implements Runnable{
                     nextEnemyMax / (streetManager.getHorizontalStreetCount() * 1.5));
         }
 
-        changeTrackTime += System.currentTimeMillis() - changeTrackTimeStart;
-        changeTrackTimeStart = System.currentTimeMillis();
         if(changeTrackTime >= changeTrack && enemys.size() > 0){
             EnemyCar enemy = getEnemy(random.nextInt(getEnemys().size()));
             double speed = random.nextDouble(1, 3);
@@ -159,6 +147,15 @@ public class ObstacleManager implements Runnable{
         move();
         generateObstacles();
         remove(height);
+
+        newFuelTank += streetManager.getSpeed(); //add speed of street to distance, until new fueltank is generated
+        if(newFuelTank >= newFuelTankDistance / ((int)(streetManager.getHorizontalStreetCount() * 0.1) + 1)){ //if distance since last fueltank is equal or higher as given distance
+            if(newFuelTankDistance + newFuelTankDistanceAdditive < newFuelTankDistanceMax){
+                newFuelTankDistance += newFuelTankDistanceAdditive; //increase distance until new fueltank
+            }
+            newFuelTank = 0; //set distance since last fueltank to 0
+            addNewFuelTank(); //generate new fueltank
+        }
     }
 
     public boolean checkObstacleCollision(Object object){

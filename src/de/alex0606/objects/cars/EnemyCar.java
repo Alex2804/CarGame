@@ -2,59 +2,55 @@ package de.alex0606.objects.cars;
 
 
 import de.alex0606.StreetManager;
-import de.alex0606.objects.CustomArea;
 
-import java.awt.*;
-import java.awt.geom.Area;
-import java.awt.image.BufferedImage;
-import java.io.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class EnemyCar extends Car{
-    private static String imagePath = "res/car.png";
-    public static String hitboxPath = "res/enemycarhitbox.ser";
+    private static String imagePath = "res/car.png"; //Path to image
+    public static String hitboxPath = "res/enemycarhitbox.ser"; //path to pixel hitbox Area
 
-    private int track = -1;
-    private int targetTrack;
-    private double speed;
-    private int xEnd;
-    private boolean changing = false;
+    private int track = -1; //track of EnemyCar
+    private int targetTrack; //target track at lange change
+    private double speed; //speed for lane change
+    private int xEnd; //target x-Position at lange change
+    private boolean changing = false; //is EnemyCar changing its lane
 
-    private StreetManager streetManager;
+    private StreetManager streetManager; //streetManager (get width of tracks)
 
+    //Constructors
     public EnemyCar(double x, double y, StreetManager streetManager){
-        super(x, y, EnemyCar.imagePath, EnemyCar.hitboxPath);
-        initVars(streetManager, getHorizontalSpeed(), getVerticalSpeed(), track);
+        super(x, y, EnemyCar.imagePath, EnemyCar.hitboxPath); //Object with x, y, image and hitbox file
+        initVars(streetManager, getHorizontalSpeed(), getVerticalSpeed(), track); //set StreetManager and default speed
     }
     public EnemyCar(double x, double y, StreetManager streetManager, double horizontalSpeed, double verticalSpeed){
-        super(x, y, EnemyCar.imagePath, EnemyCar.hitboxPath);
-        initVars(streetManager, horizontalSpeed, verticalSpeed, track);
+        super(x, y, EnemyCar.imagePath, EnemyCar.hitboxPath); //Object with x, y, image and hitbox file
+        initVars(streetManager, horizontalSpeed, verticalSpeed, track); //set StreetManager, horizontal- and vertical speed
     }
     public EnemyCar(double x, double y, StreetManager streetManager, double horizontalSpeed, double verticalSpeed, int track){
-        super(x, y, EnemyCar.imagePath, EnemyCar.hitboxPath);
-        initVars(streetManager, horizontalSpeed, verticalSpeed, track);
+        super(x, y, EnemyCar.imagePath, EnemyCar.hitboxPath); //Object with x, y, image and hitbox file
+        initVars(streetManager, horizontalSpeed, verticalSpeed, track); //set StreetManager, horizontal- and vertical speed and the track
     }
-    private void initVars(StreetManager streetManager, double horizontalSpeed, double verticalSpeed, int track){
+    private void initVars(StreetManager streetManager, double horizontalSpeed, double verticalSpeed, int track){ //Initialize parameter with given values, called by constructors
         this.streetManager = streetManager;
         setHorizontalSpeed(horizontalSpeed);
         setVerticalSpeed(verticalSpeed);
         this.track = track;
     }
 
-    public void update(){
-        moveRelative(getHorizontalSpeed(), getVerticalSpeed(), 0, streetManager.getSpeed());
+    public void update(){ //Called by GameLoop
+        moveRelative(getHorizontalSpeed(), getVerticalSpeed(), 0, streetManager.getSpeed()); //moves relative to the street
 
-        if(speed > 0 && changing){
-            if(getX() >= xEnd){
-                setHorizontalSpeed(0);
-                track = targetTrack;
-                changing = false;
+        if(speed > 0 && changing){ //if changing to right
+            if(getX() >= xEnd){ //if x end position reached
+                setHorizontalSpeed(0); //don't move horizontal
+                track = targetTrack; //set track to new track
+                changing = false; //not changing anymore
             }
-        } else{
-            if(getX() <= xEnd){
-                setHorizontalSpeed(0);
-                track = targetTrack;
-                changing = false;
+        } else if(speed < 0 && changing){ //if changing to left
+            if(getX() <= xEnd){ //if x end position reached
+                setHorizontalSpeed(0); //don't move horizontal
+                track = targetTrack; //set track to new track
+                changing = false; //not changing anymore
             }
         }
     }
@@ -66,27 +62,24 @@ public class EnemyCar extends Car{
         return track;
     }
 
-    public boolean changeTrack(int targetTrack, double speed) {
-        if(!changing){
-            this.targetTrack = targetTrack;
+    public boolean changeTrack(int targetTrack, double speed) { //initilize lane change
+        if(!changing){ //only starts lane change if not changing
+            this.targetTrack = targetTrack; //set target track
             if(targetTrack < 0 || targetTrack >= streetManager.getHorizontalStreetCount() || targetTrack == track){
-                return false;
+                return false; //if target is out of horizontal lanes or target track is current track, return (and abord change) false
             }
-            changing = true;
+            changing = true; //if not aborted, now changing
 
-            //Die geschwindigkeit muss negativ sein wenn der Spurwechsel nach links gehen soll und
-            //positiv, wenn er nach rechts gehen soll
-            this.speed =  speed * ((targetTrack-track) / Math.abs(targetTrack - track));
-            setHorizontalSpeed(this.speed);  //horizontale Geschwindigkeit festlegen
+            this.speed =  speed * ((targetTrack-track) / Math.abs(targetTrack - track)); //speed has to be positive if changing to right and negative if changing to left
+            setHorizontalSpeed(this.speed);  //set horizontal speed
 
-            // Startposition und Endposition bestimmen bzw. festlegen
-            int xStart = getX();
-            xEnd = xStart + StreetManager.getSampleStreet().getWidth() * (targetTrack - track);
+            int xStart = getX(); //start position is current position
+            xEnd = xStart + StreetManager.getSampleStreet().getWidth() * (targetTrack - track); //endposition is start position +/- track difference * track width
         }
-        return true;
+        return true; //if not aborted, return true for sucessful initialized lane change
     }
     public int getNewRandomTrack(){
-        int newTrack = ThreadLocalRandom.current().nextInt(0, streetManager.getHorizontalStreetCount());
+        int newTrack = ThreadLocalRandom.current().nextInt(0, streetManager.getHorizontalStreetCount()); //generates random track, in range of the streetmanager horizontal lane count
         return newTrack;
     }
     public boolean isChanging(){

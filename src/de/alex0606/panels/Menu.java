@@ -26,6 +26,8 @@ public abstract class Menu extends JPanel{
     }
     public void addComponent(JComponent component, GridBagConstraints c){
         components.add(component);
+        if(component instanceof JButton)
+            component.setPreferredSize(new Dimension((int)(component.getPreferredSize().width*MainWindow.scale), (int)(component.getPreferredSize().height*MainWindow.scale)));
         add(component, c);
     }
     public void removeComponent(JComponent component){

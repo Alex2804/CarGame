@@ -13,7 +13,7 @@ public class PanelManager extends JPanel implements Listener, ActionListener{
     PauseMenu pauseMenu;
     GameOverMenu gameOverMenu;
 
-    Timer startMenuTimer = new Timer(10, this);
+    Timer startMenuTimer = new Timer(70, this);
 
     GridBagConstraints constraints = new GridBagConstraints();
 
@@ -39,7 +39,7 @@ public class PanelManager extends JPanel implements Listener, ActionListener{
     }
     private void initGameBoard(GridBagConstraints c){
         gameBoard = new BlurGameBoard();
-        //gameBoard.addListener(this);
+        gameBoard.addListener(this);
         gameBoard.update();
         add(gameBoard, c);
     }
@@ -66,6 +66,7 @@ public class PanelManager extends JPanel implements Listener, ActionListener{
         if(!startMenu.isVisible()) {
             startMenu.setVisible(true);
             startMenuTimer.start();
+            gameBoard.setGameOver(false);
             repaint();
         }
     }
@@ -352,7 +353,7 @@ class FastBlurFilter implements BufferedImageOp{
     }
 }
 class BlurGameBoard extends GameBoard{
-    public int maximumBlurRadius = 15;
+    public int maximumBlurRadius = 13;
     public FastBlurFilter filter = new FastBlurFilter(maximumBlurRadius);
 
     public boolean reduceBlur(int count){
@@ -385,16 +386,28 @@ class BlurGameBoard extends GameBoard{
     }
 
     @Override
-    public void paintComponent(Graphics g) {
+    public void paint(Graphics g) {
         if(filter.getRadius() > 0){
-            BufferedImage bufferedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-            super.paintComponent(bufferedImage.createGraphics());
+            if(gameOver){
+                BufferedImage bufferedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+                super.paint(bufferedImage.createGraphics());
 
-            BufferedImage image = filter.filter(bufferedImage, null);
-            g.drawImage(image, 0, 0, null);
+                BufferedImage image = filter.filter(bufferedImage, null);
+                g.drawImage(image, 0, 0, null);
+            }else {
+                BufferedImage bufferedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+                Graphics2D g2d = (Graphics2D) bufferedImage.createGraphics();
+                g2d.setColor(getBackground());
+                g2d.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
+                super.drawStreet(g2d);
+                super.drawCar(g2d);
+
+                BufferedImage image = filter.filter(bufferedImage, null);
+                g.drawImage(image, 0, 0, null);
+            }
         }
         else
-            super.paintComponent(g);
+            super.paint(g);
     }
 }
 

@@ -170,16 +170,16 @@ public class Object{
         moveRelativeHorizontal(xDif, horizontalMovement);
         moveRelativeVertical(yDif, verticalMovement);
     }
-    public void moveHorizontal(double xDif){ //move for given y Difference vertical
+    public void moveHorizontal(double xDif){ //move for given x Difference horizontal
         x += xDif;
     }
-    public void moveRelativeHorizontal(double xDif, double horizontalMovement){
+    public void moveRelativeHorizontal(double xDif, double horizontalMovement){ //move for given x Difference horizontal, relative to given horizontal movement
         moveHorizontal(horizontalMovement + xDif);
     }
-    public void moveVertical(double yDif){
+    public void moveVertical(double yDif){ //move for given y Difference vertical
         y += yDif;
     }
-    public void moveRelativeVertical(double yDif, double verticalMovement){
+    public void moveRelativeVertical(double yDif, double verticalMovement){ //move for given y Difference vertical, relative to given vertical movement
         moveVertical(verticalMovement + yDif);
     }
 
@@ -219,11 +219,9 @@ public class Object{
     private void setWidth(int width){
         this.width = width;
     }
-
     public int getWidth() {
         return width;
     }
-
     public int width(){
         return getWidth();
     }
@@ -239,28 +237,30 @@ public class Object{
     }
 
     public Rectangle getBoundingRect(){
-        return new Rectangle(getX(), getY(), width(), height());
+        return new Rectangle(getX(), getY(), width(), height()); //returns a rectangle, with origin x, y and the width and height of the object(image)
     }
 
     public Area getHitbox(){
         if(hitboxArea == null){
-            return new Area(getBoundingRect());
+            return new Area(getBoundingRect()); //if no hitboxarea was created, it returns the bounding rectangle
         }
-        else {
-            return getHitboxArea().createTransformedArea(AffineTransform.getTranslateInstance(getX()/MainWindow.scale, getY()/MainWindow.scale)).createTransformedArea(AffineTransform.getScaleInstance(MainWindow.scale, MainWindow.scale));
+        else { //if a hitboxarea was created, this area is returned, with origin at x, y of the object and scaled
+            return getHitboxArea().createTransformedArea(AffineTransform.
+                    getTranslateInstance(getX()/MainWindow.scale, getY()/MainWindow.scale)). //move area to x and y
+                    createTransformedArea(AffineTransform.getScaleInstance(MainWindow.scale, MainWindow.scale)); //scale area
         }
     }
 
-    public boolean checkHitboxIntersection(Area hitbox){
-        Area overlap = new Area(hitbox);
-        overlap.intersect(getHitbox());
-        return !overlap.isEmpty();
+    public boolean checkHitboxIntersection(Area hitbox){ //checks if the given area intersects with the hitbox of this object
+        Area overlap = new Area(hitbox); //this hitbox is used for intersection test
+        overlap.intersect(getHitbox()); //only get the area, that is overlapping
+        return !overlap.isEmpty(); //if overlap is empty, the areas are not intersecting
     }
-    public boolean checkHitboxIntersection(Object object){
+    public boolean checkHitboxIntersection(Object object){ //checks if the hitbox of the given object intersects with the hitbox of this object
         return checkHitboxIntersection(object.getHitbox());
     }
 
-    public void draw(Graphics g, JPanel observer){
-        draw((Graphics2D) g, observer);
+    public void draw(Graphics g){
+        g.drawImage(getImage(), x(), y(), null); //draws the image with the given graphics object
     }
 }
