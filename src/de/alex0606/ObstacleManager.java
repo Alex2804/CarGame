@@ -147,7 +147,7 @@ public class ObstacleManager implements Runnable{
         int xAdditive = random.nextInt(1,StreetManager.getSampleStreet().getWidth() - sampleEnemey.getWidth() - 1);
         int x = streetManager.getXAdditive() + StreetManager.getSampleStreet().getWidth() * track + xAdditive;
 
-        int y = -200;
+        int y = -sampleEnemey.getHeight()-100;
         double horizontalSpeed = 0;
         double verticalSpeed = random.nextDouble(-4, -2);
 

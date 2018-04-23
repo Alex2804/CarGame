@@ -1,6 +1,7 @@
 package de.alex0606.objects;
 
 import de.alex0606.MainWindow;
+import sun.applet.Main;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -15,160 +16,161 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class Object{
-    private double x = 0;
-    private double y = 0;
-    private int width = 0;
-    private int height = 0;
-    private boolean visible = true;
-    private BufferedImage image;
-    private Area hitboxArea = null;
+    private double x = 0; //X Position of the object
+    private double y = 0; //Y Position of the object
+    private int width = 0; //width of the object(image)
+    private int height = 0; //height of the object(image)
+    private boolean visible = true; //visibility
+    private BufferedImage originImage; //original image (not scaled)
+    private BufferedImage image; //scaled image of the object
+    private Area hitboxArea = null; //pixel hitbox of the image (if null, the hitbox is the bounding rectangle)
 
-    private String hitboxPath = null;
+    private String hitboxPath = null; //path to the file, where the Area of the pixel hitbox is saved. If null, no pixelhitbox created/read.
 
-    public Object(){ }
+    //Constructors
+    public Object(){ } //Object with no image and standard position
     public Object(double x, double y){
-        initVars(x, y, visible, null, false);
+        initVars(x, y, visible, null, false, hitboxPath); //Object with given x and y
     }
     public Object(double x, double y, boolean visible){
-        initVars(x, y, visible, null, false);
+        initVars(x, y, visible, null, false, hitboxPath); //Object with given x, y and visibility
     }
     public Object(double x, double y, String imagePath) {
-        initVars(x, y, visible, imagePath, false);
+        initVars(x, y, visible, imagePath, false, hitboxPath); //Object with given x, y and image if imagepath is valid
     }
     public Object(double x, double y, boolean visible, String imagePath) {
-        initVars(x, y, visible, imagePath, false);
+        initVars(x, y, visible, imagePath, false, hitboxPath); //Object with given x, y, visibility, and image if imagepath is valid
     }
     public Object(double x, double y, boolean visible, String imagePath, String hitboxPath) {
-        initVars(x, y, visible, imagePath, false, hitboxPath);
+        initVars(x, y, visible, imagePath, false, hitboxPath); //Object with given x, y, visibility, image if path valid and pixel-hitbox (generated or read)
     }
     public Object(double x, double y, String imagePath, boolean pixelHitbox) {
-        initVars(x, y, visible, imagePath, pixelHitbox);
+        initVars(x, y, visible, imagePath, pixelHitbox, hitboxPath); //Object with given x, y, image if path valid and generated pixelhitbox (if true)
     }
     public Object(double x, double y, String imagePath, String hitboxPath) {
-        initVars(x, y, visible, imagePath, false, hitboxPath);
+        initVars(x, y, visible, imagePath, false, hitboxPath); //Object with given x, y, image if path valid and pixel-hitbox (generated or read)
     }
     public Object(double x, double y, boolean visible, String imagePath, boolean pixelHitbox) {
-        initVars(x, y, visible, imagePath, pixelHitbox);
+        initVars(x, y, visible, imagePath, pixelHitbox, hitboxPath); //Object with given x, y, visibility, image if path valid and generated pixelhitbox (if true)
     }
-    private void initVars(double x, double y, boolean visible, String imagePath, boolean pixelHitbox){
-        initVars(x, y, visible, imagePath, pixelHitbox, null);
-    }
+    //Initialize the parameter. Called by constructors
     private void initVars(double x, double y, boolean visible, String imagePath, boolean pixelHitbox, String hitboxPath){
         this.x = x;
         this.y = y;
         this.visible = visible;
         this.hitboxPath = hitboxPath;
-        if(imagePath != null){
+        if(imagePath != null){ //set image if path to image exists
             setImage(imagePath);
-            if(pixelHitbox || hitboxPath != null){
+            if(pixelHitbox || hitboxPath != null){ //generate pixelhitbox or read/write it to file if hitboxPath is given
                 setHitboxArea(getPixelHitbox());
             }
         }
     }
     public Area getPixelHitbox(){
-        try{
-            FileInputStream fis = new FileInputStream(hitboxPath);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            Area hitboxArea = new Area((Path2D) ois.readObject());
-            ois.close();
-            fis.close();
-            return hitboxArea;
-        }catch (FileNotFoundException e){
-            System.out.println(e);
-        }catch (IOException e){
-            System.out.println(e);
-        }catch (ClassNotFoundException e){
-            System.out.println(e);
-        }
-        if(hitboxPath == null)
+        if(hitboxPath != null) { //Read hitbox area from file if path to file is given
+            try {
+                FileInputStream fis = new FileInputStream(hitboxPath);
+                ObjectInputStream ois = new ObjectInputStream(fis);
+                Area hitboxArea = new Area((Path2D) ois.readObject()); //Read Path and convert it to area
+                ois.close();
+                fis.close(); //close file
+                return hitboxArea; //return the hitbox area
+            } catch (FileNotFoundException e) {
+                System.out.println(e);
+                return createWriteHitbox(); //Write
+            } catch (IOException e) {
+                System.out.println(e);
+                return createWriteHitbox(); //Try to write area to file if stream stops (whyever)
+            } catch (ClassNotFoundException e) {
+                System.out.println(e);
+                return createWriteHitbox(); //Write area to file if class not found
+            }
+        }else
             return createPixelHitbox();
-        else
-            return createWriteHitbox();
     }
     private Area createWriteHitbox(){
         System.out.println("create write " + hitboxPath);
-        Area hitboxArea = createPixelHitbox();
+        Area hitboxArea = createPixelHitbox(); //Create pixelhitbox-area
         try{
             FileOutputStream fos = new FileOutputStream(hitboxPath);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(AffineTransform.getTranslateInstance(0,0).createTransformedShape(hitboxArea));
-            oos.close();
+            oos.writeObject(AffineTransform.getTranslateInstance(0,0).createTransformedShape(hitboxArea)); //Write area to file. Only transformed shapes are serializable
+            oos.close(); //close file
             fos.close();
         }catch (FileNotFoundException e){
             System.out.println(e);
         }catch (IOException e){
             System.out.println(e);}
-        return hitboxArea;
+        return hitboxArea; //return hitbox area, even if errors occur.
     }
     public Area createPixelHitbox(){
-        Area area = new Area();
+        Area area = new Area(); //create new (empty) Area object
 
-        BufferedImage image = getImage();
+        BufferedImage image = getOriginImage(); //get original (unscaled) image
 
-        for(int x = 0; x < image.getWidth(); x++){
-            for(int y = 0; y < image.getHeight(); y++){
-                if(!(image.getRGB(x, y)>>24==0x00)){
-                    area.add(new Area(new Rectangle(x, y, 1, 1)));
+        for(int x = 0; x < image.getWidth(); x++){ //Parse every column
+            for(int y = 0; y < image.getHeight(); y++){ //Parse every row
+                if(!(image.getRGB(x, y)>>24==0x00)){ //if Alpha is 0 (pixel is transparent)
+                    area.add(new Area(new Rectangle(x, y, 1, 1))); //The transparent pixel is added to the area
                 }
             }
         }
-        return area;
+        return area; //return the new pixel hitbox
     }
     public void setHitboxArea(Area hitboxArea) {
         this.hitboxArea = hitboxArea;
     }
-
     public Area getHitboxArea() {
         return hitboxArea;
     }
 
     public void setImage(String imagePath){
-        BufferedImage image = null;
         try {
-            image = ImageIO.read(new File(imagePath));
+            BufferedImage image = ImageIO.read(new File(imagePath)); //Reads the Image (throws exeption is path is not valid)
+            setImage(image); //Object sets image (this method only reads it)
         }catch (IOException e){
             System.out.println("Image " + imagePath + " not Found!");
         }
-        setImage(image);
     }
     public void setImage(BufferedImage image){
-        int w = image.getWidth();
-        int h = image.getHeight();
-        double scale = MainWindow.scale;
+        this.originImage = image; //saves the unscaled image
+        int w = image.getWidth(); //width of unscaled image
+        int h = image.getHeight(); //height of unscaled image
         // Create a new image of the proper size
-        int w2 = (int) (w * scale);
-        int h2 = (int) (h * scale);
-        BufferedImage scaledImage = new BufferedImage(w2, h2, BufferedImage.TYPE_INT_ARGB);
-        AffineTransform scaleInstance = AffineTransform.getScaleInstance(scale, scale);
-        AffineTransformOp scaleOp = new AffineTransformOp(scaleInstance, AffineTransformOp.TYPE_BILINEAR);
+        int w2 = (int) (w * MainWindow.scale); //new width
+        int h2 = (int) (h * MainWindow.scale); //new height
+        BufferedImage scaledImage = new BufferedImage(w2, h2, BufferedImage.TYPE_INT_ARGB); //create new BufferedImage
+        Graphics g = scaledImage.createGraphics(); //get Graphics object of the scaled image
+        ((Graphics2D) g).drawImage(image, 0, 0, w2, h2,null); //paint the unscaled image scaled to the scaled image
 
-        scaleOp.filter(image, scaledImage);
+        this.image = scaledImage; //set the image
 
-        this.image = scaledImage;
-
-        updateDimensions();
+        updateDimensions(); //update the object dimensions
     }
     public BufferedImage getImage(){
         return image;
     }
+    public BufferedImage getOriginImage(){
+        return originImage;
+    }
     private void updateDimensions(){
-        setWidth(image.getWidth(null));
-        setHeight(image.getHeight(null));
+        setWidth(image.getWidth(null)); //sets the width to the width of the object image
+        setHeight(image.getHeight(null)); //sets the height to the height of the object image
     }
 
-    public void moveTo(double x, double y){
+    public void moveTo(double x, double y){ //move to given x and y
         setX(x);
         setY(y);
     }
-    public void move(double xDif, double yDif){
+    public void move(double xDif, double yDif){ //move for given x- and y-Difference
         moveHorizontal(xDif);
         moveVertical(yDif);
     }
-    public void moveRelative(double xDif, double yDif, double horizontalMovement, double verticalMovement){
+    public void moveRelative(double xDif, double yDif, double horizontalMovement, double verticalMovement){ //move for given x- and y-Difference relative to the given vertical and horizontal movement
         moveRelativeHorizontal(xDif, horizontalMovement);
         moveRelativeVertical(yDif, verticalMovement);
     }
-    public void moveHorizontal(double xDif){
+    public void moveHorizontal(double xDif){ //move for given y Difference vertical
         x += xDif;
     }
     public void moveRelativeHorizontal(double xDif, double horizontalMovement){
@@ -245,7 +247,7 @@ public class Object{
             return new Area(getBoundingRect());
         }
         else {
-            return getHitboxArea().createTransformedArea(AffineTransform.getTranslateInstance(getX(), getY()));
+            return getHitboxArea().createTransformedArea(AffineTransform.getTranslateInstance(getX()/MainWindow.scale, getY()/MainWindow.scale)).createTransformedArea(AffineTransform.getScaleInstance(MainWindow.scale, MainWindow.scale));
         }
     }
 
