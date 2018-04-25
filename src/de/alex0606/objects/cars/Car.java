@@ -3,9 +3,6 @@ package de.alex0606.objects.cars;
 import de.alex0606.MainWindow;
 import de.alex0606.objects.Object;
 
-import java.awt.*;
-import java.awt.geom.*;
-
 public abstract class Car extends Object{
     private static String imagePath = "res/car.png"; //standard car image
 

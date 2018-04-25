@@ -5,14 +5,10 @@ import de.alex0606.objects.cars.EnemyCar;
 import de.alex0606.objects.cars.PlayerCar;
 import de.alex0606.objects.cars.PoliceCar;
 
-import javax.rmi.CORBA.Util;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
-import java.lang.Thread;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ObstacleManager{
     private EnemyCar sampleEnemey; //EnemyCar to get dimensions from

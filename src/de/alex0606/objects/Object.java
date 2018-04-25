@@ -7,13 +7,9 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.nio.Buffer;
 import javax.imageio.ImageIO;
-import javax.swing.*;
 
 public class Object{
     private double x = 0; //X Position of the object

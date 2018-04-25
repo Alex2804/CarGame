@@ -1,7 +1,6 @@
 package de.alex0606;
 
 import de.alex0606.objects.Object;
-import de.alex0606.objects.Object;
 
 import javax.swing.*;
 import java.awt.*;
