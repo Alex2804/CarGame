@@ -103,14 +103,14 @@ public class StreetManager { //Manages the road
         this.xAdditive = xAdditive;
     }
 
-    public void move(){
-        y += speed;
-        if(y / sampleStreet.getHeight() >= 1){
-            setY(y % sampleStreet.getHeight());
+    public void move(){ //moves all objects as one big road
+        y += speed; //add the speed to the y position of the StreetManager
+        if(y / sampleStreet.getHeight() >= 1){ //if the y translation is bigger than one street height
+            int temp = (int)(y/sampleStreet.getHeight()); //store shift
+            setY(y - sampleStreet.getHeight()*temp); //subtract one street height from y
 
-            for(Object street : streets){
-                street.moveVertical(speed - sampleStreet.getHeight());
-                street.setY(street.getY() + getY());
+            for(Object street : streets){ //for all street objects
+                street.moveVertical(speed - sampleStreet.getHeight()*temp + y); //move streets backwards (for one street height) until at default position
             }
         }
         else{

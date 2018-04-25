@@ -15,7 +15,7 @@ public class MainWindow extends JFrame{
 
     public MainWindow(){
         setIconImage(new ImageIcon("res/logo.png").getImage());
-        setResizable(false);
+        setResizable(true);
 
         int width = 600;
         int height = 1000;
@@ -34,6 +34,7 @@ public class MainWindow extends JFrame{
     }
 
     public static void main(String args[]){
+        System.setProperty("sun.java2d.opengl", "True");
         try {
             // Set cross-platform Java L&F (also called "Metal")
             UIManager.setLookAndFeel(
@@ -51,7 +52,7 @@ public class MainWindow extends JFrame{
         catch (IllegalAccessException e) {
             // handle exception
         }
-        CleanSetup cs = new CleanSetup();
+        //CleanSetup cs = new CleanSetup();
         //cs.start();
         MainWindow mainWindow = new MainWindow();
     }

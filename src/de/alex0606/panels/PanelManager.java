@@ -1,5 +1,7 @@
 package de.alex0606.panels;
 
+import com.jogamp.opengl.util.awt.ImageUtil;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -90,8 +92,9 @@ public class PanelManager extends JPanel implements Listener, ActionListener{
             repaint();
         }
     }
-    public void showGameOverMenu(){
+    public void showGameOverMenu(int score){
         if(!gameOverMenu.isVisible()){
+            gameOverMenu.setScore(score);
             gameOverMenu.setVisible(true);
             repaint();
         }
@@ -127,9 +130,9 @@ public class PanelManager extends JPanel implements Listener, ActionListener{
         showPauseMenu();
     }
     @Override
-    public void gameOver() {
+    public void gameOver(int score) {
         gameBoard.resetBlur();
-        showGameOverMenu();
+        showGameOverMenu(score);
     }
     @Override
     public void gameStartInitialized() {
@@ -182,15 +185,67 @@ public class PanelManager extends JPanel implements Listener, ActionListener{
 }
 
 
+/**
+ * This class extends the GameBoard class and inherits all of its methods. The BlurGameBoard uses a filter, to blur its
+ * content. This bluring is not accelerated and only uses cpu. If the radius of the filter is set to 0, it has no affect
+ * to the performance.
+ */
+class BlurGameBoard extends GameBoard{
+    public int maximumBlurRadius = 13; //max blur
+    public FastBlurFilter filter = new FastBlurFilter(maximumBlurRadius);
+
+    public void resetBlur(){
+        filter.setRadius(maximumBlurRadius);
+    }
+    public void setRadius(int radius){
+        filter.setRadius(radius);
+    }
+    public int getRadius(){
+        return filter.getRadius();
+    }
+
+    public void update(){ //updates only road and center car
+        streetManager.update();
+        car.moveTo(getWidth()/2 - car.getWidth()/2, getHeight()*0.6);
+    }
+
+    @Override
+    public void paintComponent(Graphics g) {
+        if(filter.getRadius() > 0){ //if blur is active
+            if(isPause() || getGameOver()){ //if game is paused or game over
+                BufferedImage bufferedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB); //create buffered image to draw at
+                super.paintComponent(bufferedImage.createGraphics()); //draw to buffered image all components of the regular GameBoard
+
+                BufferedImage image = filter.filter(bufferedImage, null); //use filter at buffered image
+                g.drawImage(image, 0, 0, null); //draw blured image
+            }else {
+                BufferedImage bufferedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB); //create buffered image to draw at
+                Graphics2D g2d = (Graphics2D) bufferedImage.createGraphics(); //get graphics of buffered image to draw with
+                g2d.setColor(getBackground()); //get Background color
+                g2d.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight()); //draw background manuel (super.paintComponent do this job but is not called)
+                drawStreet(g2d); //only draw streets ...
+                drawCar(g2d); //and the player car
+
+                BufferedImage image = filter.filter(bufferedImage, null); //use filter at buffered image
+                g.drawImage(image, 0, 0, null); //draw blured image
+            }
+        }
+        else //if blur is not active
+            super.paintComponent(g); //draw the normal GameBoard
+    }
+}
+
+
+//Filter to create blur effect
 class FastBlurFilter implements BufferedImageOp{
-    private int radius;
+    private int radius; //radius of the blur effect
 
     public FastBlurFilter(int radius) {
         this.radius = radius;
-    }
+    } //Constructor
     public void setRadius(int radius){
         this.radius = radius > 0 ? radius : 0;
-    }
+    } //only allow radius greater/equal 0
     public int getRadius() {
         return radius;
     }
@@ -350,64 +405,6 @@ class FastBlurFilter implements BufferedImageOp{
     }
     public RenderingHints getRenderingHints() {
         return null;
-    }
-}
-class BlurGameBoard extends GameBoard{
-    public int maximumBlurRadius = 13;
-    public FastBlurFilter filter = new FastBlurFilter(maximumBlurRadius);
-
-    public boolean reduceBlur(int count){
-        if(filter.getRadius() > 0){
-            filter.setRadius(filter.getRadius() - count);
-            return true;
-        }else
-            return false;
-    }
-    public boolean increaseBlur(int count){
-        if(filter.getRadius() < maximumBlurRadius){
-            filter.setRadius(filter.getRadius() + count > maximumBlurRadius ? maximumBlurRadius : filter.getRadius() + count);
-            return true;
-        }else
-            return false;
-    }
-    public void resetBlur(){
-        filter.setRadius(maximumBlurRadius);
-    }
-    public void setRadius(int radius){
-        filter.setRadius(radius);
-    }
-    public int getRadius(){
-        return filter.getRadius();
-    }
-
-    public void update(){
-        streetManager.update();
-        car.moveTo(getWidth()/2 - car.getWidth()/2, getHeight()*0.6);
-    }
-
-    @Override
-    public void paint(Graphics g) {
-        if(filter.getRadius() > 0){
-            if(gameOver){
-                BufferedImage bufferedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-                super.paint(bufferedImage.createGraphics());
-
-                BufferedImage image = filter.filter(bufferedImage, null);
-                g.drawImage(image, 0, 0, null);
-            }else {
-                BufferedImage bufferedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-                Graphics2D g2d = (Graphics2D) bufferedImage.createGraphics();
-                g2d.setColor(getBackground());
-                g2d.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
-                super.drawStreet(g2d);
-                super.drawCar(g2d);
-
-                BufferedImage image = filter.filter(bufferedImage, null);
-                g.drawImage(image, 0, 0, null);
-            }
-        }
-        else
-            super.paint(g);
     }
 }
 

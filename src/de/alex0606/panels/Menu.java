@@ -18,13 +18,15 @@ public abstract class Menu extends JPanel{
     public void addListener(Listener listener){
         listeners.add(listener);
     }
-    private int maxAlpha = 150;
 
     public Menu(){
         setLayout(new GridBagLayout());
         resetBackground();
     }
     public void addComponent(JComponent component, GridBagConstraints c){
+        c.ipady *= MainWindow.scale;
+        c.ipadx *= MainWindow.scale;
+        c.insets = new Insets((int)(c.insets.top*MainWindow.scale), (int)(c.insets.left*MainWindow.scale), (int)(c.insets.bottom*MainWindow.scale), (int)(c.insets.right*MainWindow.scale));
         components.add(component);
         if(component instanceof JButton)
             component.setPreferredSize(new Dimension((int)(component.getPreferredSize().width*MainWindow.scale), (int)(component.getPreferredSize().height*MainWindow.scale)));
@@ -39,7 +41,7 @@ public abstract class Menu extends JPanel{
     }
 
     public void resetBackground(){
-        setBackground(new Color(255, 255, 255, maxAlpha));
+        setBackground(new Color(255, 255, 255, 150));
     }
 }
 
@@ -142,14 +144,24 @@ class PauseMenu extends Menu{
 }
 
 class GameOverMenu extends Menu{
+    ImageIcon gameOverIcon = null;
+    JLabel gameOverLabel;
     JButton restartButton;
     JButton homeButton;
+    JLabel scoreLabel;
 
     public GameOverMenu(){
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(20, 0, 20, 0);
         c.fill = c.HORIZONTAL;
         c.ipady = 30;
+
+
+        gameOverIcon = new ImageIcon("res/gameover.png");
+        gameOverIcon = new ImageIcon(gameOverIcon.getImage().getScaledInstance((int)(gameOverIcon.getIconWidth() * MainWindow.scale), (int)(gameOverIcon.getIconHeight() * MainWindow.scale), BufferedImage.SCALE_SMOOTH));
+        gameOverLabel = new JLabel(gameOverIcon);
+        c.gridy = 0;
+        addComponent(gameOverLabel, c);
 
         restartButton = new JButton("Restart Game");
         restartButton.addActionListener(new ActionListener() {
@@ -174,5 +186,16 @@ class GameOverMenu extends Menu{
         });
         c.gridy = 2;
         addComponent(homeButton, c);
+
+        scoreLabel = new JLabel("Score: 0");
+        scoreLabel.setHorizontalAlignment(JLabel.CENTER);
+        scoreLabel.setFont(new Font("Arial", Font.BOLD, (int)(40*MainWindow.scale)));
+        scoreLabel.setForeground(new Color(255, 255,255));
+        c.gridy = 3;
+        addComponent(scoreLabel, c);
+    }
+
+    public void setScore(int score){
+        scoreLabel.setText("Score: " + score);
     }
 }

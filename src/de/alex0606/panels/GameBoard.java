@@ -4,7 +4,6 @@ import de.alex0606.MainWindow;
 import de.alex0606.ObstacleManager;
 import de.alex0606.StreetManager;
 import de.alex0606.objects.cars.*;
-import sun.applet.Main;
 
 import javax.swing.*;
 
@@ -15,74 +14,75 @@ import java.util.ArrayList;
 
 
 public class GameBoard extends JPanel implements ActionListener{
-    private ArrayList<Listener> listener = new ArrayList<Listener>();
+    private ArrayList<Listener> listeners = new ArrayList<Listener>(); //game listeners
     public void addListener(Listener listener){
-        this.listener.add(listener);
-    }
+        this.listeners.add(listener);
+    } //add game listeners
 
-    public StreetManager streetManager = new StreetManager(this);
-    public ObstacleManager obstacles = new ObstacleManager(streetManager);
+    public StreetManager streetManager = new StreetManager(this); //manages road
+    public ObstacleManager obstacles = new ObstacleManager(streetManager); //manages obstacles
 
-    public PlayerCar car = new PlayerCar(300, 400, streetManager);
+    public PlayerCar car = new PlayerCar(300, 400, streetManager); //player car
 
-    public boolean fuelBelowCar = true;
+    public boolean fuelBelowCar = true; //fuel gauge below player car
 
-    public int score = 0;
+    public double score = 0; //saves the score (moved street distance)
 
-    private Timer gameTimer;
-    private Timer startTimer;
-    private double streetSpeedTime = 0;
-    private double startTimerTime;
-    private double startTimerTimeMax = 5000;
-    private double timeStart;
-    private int timerSpeed = 10;
+    private Timer gameTimer; //Game loop timer
+    private Timer startTimer; //start sequence timer
+    private double streetSpeedTime = 0; //time since last street speedup
+    private double startTimerTime; //runtime of starttimer
+    private double startTimerTimeMax = 5000; //runtime of starttimer in milliseconds
+    private double timeStart; //caches time to calculate time difference between game loop repetitions
+    private int timerSpeed = 10; //speed of game loop and start sequence timer
 
-    public boolean gameOver = true;
+    public boolean gameOver = true; //stores if game is over
+    public boolean pause = false; //stores if game paused
 
     public GameBoard(){
-        addKeyListener(new TAdapter());
-        setFocusable(true);
-        setBackground(new Color(0, 100, 0));
-        setDoubleBuffered(true);
+        addKeyListener(new TAdapter()); //Listen to key events (if focused top level panel)
+        setFocusable(true); //activate focus to get key events if top level panel
+        setBackground(new Color(0, 100, 0)); //set Background color to green
+        setDoubleBuffered(true); //enable doublebuffering (if it isn't enabled by default)
 
-        //obstacles.addObstacle(new Object(150, 30, "res/barrier.png"));
-
-        gameTimer = new Timer(timerSpeed, this);
-        startTimer = new Timer(timerSpeed, this);
+        gameTimer = new Timer(timerSpeed, this); //create game loop (timer)
+        startTimer = new Timer(timerSpeed, this); //create start sequence timer
     }
 
-    public void initializeStart(){
-        for(Listener listener : listener){
-            listener.gameStartInitialized();
+    public void initializeStart(){ //start start sequenze with start timer
+        for(Listener listener : listeners){
+            listener.gameStartInitialized(); //send to all listeners, that start sequence is starting (start is initialized)
         }
-        reset();
-        startTimerTime = startTimerTimeMax;
-        timeStart = System.currentTimeMillis();
-        startTimer.start();
+        reset(); //reset all necessary
+        startTimerTime = startTimerTimeMax; //start timer is at max
+        timeStart = System.currentTimeMillis(); //get current time to calculate time difference
+        startTimer.start(); //start timer for start sequence
     }
-    public void startGame(){
-        for(Listener listener : listener){
-            listener.gameStarted();
+    public void startGame(){//start the game
+        for(Listener listener : listeners){
+            listener.gameStarted(); //call listeners, that game starts
         }
-        reset();
-        obstacles.thread.start();
-        gameTimer.start();
+        reset(); //reset all necessary
+        obstacles.startThread(); //obstacles collision has to be checked in extra thread
+        gameTimer.start(); //start game loop
     }
     public void reset(){
-        gameOver = false;
-        obstacles = new ObstacleManager(streetManager);
-        car.moveTo((getWidth()/2) - (car.getWidth()/2), getHeight() * 0.6);
-        car.reset();
-        streetManager.resetSpeed();
-        score = 0;
+        setGameOver(false); //game is not over
+        setPause(false); //and not paused
+        obstacles.thread.interrupt(); //stop thread
+        obstacles = new ObstacleManager(streetManager); //reset obstacles
+        car.moveTo((getWidth()/2) - (car.getWidth()/2), getHeight() * 0.6); //reset car position
+        car.reset(); //reset car
+        streetManager.resetSpeed(); //set road speed to default
+        score = 0; //reset score
     }
     public void gameOver(){
-        for(Listener listener : listener){
-            listener.gameOver();
+        for(Listener listener : listeners){
+            listener.gameOver(getScore()); //tell listeners that game is over (stopped)
         }
-        gameOver = true;
-        obstacles.thread.interrupt();
-        gameTimer.stop();
+        setGameOver(true); //set gameOver true
+        obstacles.stopThread(); //stop obstacle collision checks
+        gameTimer.stop(); //stop game loop
     }
     public boolean getGameOver(){
         return gameOver;
@@ -94,105 +94,107 @@ public class GameBoard extends JPanel implements ActionListener{
         this.score = score;
     }
     public int getScore(){
-        return score;
+        return (int)score;
     }
     public void pause(){
-        for(Listener listener : listener){
-            listener.gamePaused();
+        for(Listener listener : listeners){
+            listener.gamePaused(); //tell listeners that game paused
         }
-        obstacles.thread.interrupt();
-        gameTimer.stop();
-        startTimer.stop();
-
+        gameTimer.stop(); //stop game loop
+        setPause(true); //pause is true
+        obstacles.stopThread(); //stop obstacle collision checks
+        startTimer.stop(); //stop start sequence
     }
+    public void setPause(boolean pause) {
+        this.pause = pause;
+    }
+    public boolean isPause() {
+        return pause;
+    }
+
     public void continueGame(){
-        if(startTimerTime > -1000) {
-            startTimer.start();
-        }else if(startTimerTime <= -1000){
-            gameTimer.start();
-            obstacles.thread.start();
+        if(startTimerTime > 0) { //if start sequence was running before paused
+            startTimer.start(); //continue start sequence
+        }else{ //if start sequence was over
+            gameTimer.start(); //restart game loop
+            obstacles.startThread(); //and continue obstacle collision checks
         }
+        setPause(false); //pause is false
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(e.getSource().equals(gameTimer)){
-            score += streetManager.getSpeed();
-            obstacles.update(getHeight());
-            car.update();
-            streetSpeedTime += System.currentTimeMillis() - timeStart;
-            if(streetSpeedTime >= 15000){
-                if(streetManager.increaseSpeed(1)) {
-                    car.speedBase -= 1;
+        if(e.getSource().equals(gameTimer)){ //if in game loop
+            score += streetManager.getSpeed()/10; //add streetmanager distance to score
+            obstacles.update(getHeight()); //update all obstacles (move + generate)
+            car.update(); //update car (move it)
+            streetSpeedTime += System.currentTimeMillis() - timeStart; //increase time since last road speedup
+            timeStart = System.currentTimeMillis(); //save time to calculate elapsed time
+            if(streetSpeedTime >= 15000){ //if 15 seconds left since last road speedup
+                if(streetManager.increaseSpeed(1)) { //if speed increase by 1 possible (speed of road below max speed)
+                    car.speedBase -= 1; //speedup car
                     car.speedSlowDown -= 1;
                     car.speedForward -= 1;
-                    car.updateSpeed();
+                    car.updateSpeed(); //update new speed of player car
                 }
-                streetSpeedTime = 0;
+                streetSpeedTime = 0; //time since last road speed is 0
             }
-        }else if(e.getSource().equals(startTimer)){
-            startTimerTime -= System.currentTimeMillis() - timeStart;
+        }else if(e.getSource().equals(startTimer)){ //if in start sequence
+            startTimerTime -= System.currentTimeMillis() - timeStart; //time left until start sequence stops
+            timeStart = System.currentTimeMillis(); //save time to calculate elapsed time
 
-            if(startTimerTime < -1000){
-                startTimer.stop();
-                startGame();
+            if(startTimerTime < 0){ //if start timer reached 0 (start sequence is over)
+                startTimer.stop(); //stop the start sequence timer
+                startGame(); //start the game
             }
-            car.fillFuel();
+            car.fillFuel(); //fill fuel in start sequence
+            car.moveTo((getWidth()/2) - (car.getWidth()/2), getHeight() * 0.6); //center car in startsequence
         }
-        timeStart = System.currentTimeMillis();
-        streetManager.update();
+        streetManager.update(); //update streetmanager (doesn't matter if in game loop or start sequence)
 
-        if(!carOnRoad() || obstacles.checkObstacleCollision(car) || car.getFuel() <= 0){
-            gameOver();
+        repaint(); //repaint the gameBoard
+
+        if(!carOnRoad() || obstacles.checkObstacleCollision(car) || car.getFuel() <= 0){ //if car is off road or collides with an obstacle
+            gameOver(); //the game is over
         }
 
-        repaint();
+
     }
-    public boolean carOnRoad(){
-        Area streetArea = new Area(streetManager.getBoundingRect());
+    public boolean carOnRoad(){ //checks if car is on road
+        Area streetArea = new Area(streetManager.getBoundingRect()); //bounding rect of street area
         streetArea.intersect(new Area(car.getBoundingRect()));
 
-        if(streetArea.getBounds().getWidth() > car.getBoundingRect().getWidth() - 10 &&
-                streetArea.getBounds().getHeight() > 10){
-            return true;
+        if(streetArea.getBounds().getWidth() > car.getBoundingRect().getWidth()*0.95 &&
+                streetArea.getBounds().getHeight() > car.getBoundingRect().getHeight()*0.05){
+            return true; //if more than 5% of the car(height) and 95% (width) is on the road return true
         }
         else{
-            return false;
+            return false; //else return false
         }
     }
 
     @Override
-    public void paint(Graphics g) {
-        //super.paintComponent(g);
-        Graphics2D g2d = (Graphics2D) g;
-        g.setColor(getBackground());
-        g.fillRect(0, 0, getWidth(), getHeight());
+    public void paintComponent(Graphics g) { //repaint
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g; //cast Graphics to Graphics2D (more shapes)
 
-        drawStreet(g2d);
+        drawStreet(g2d); //draw Streets
 
-        //Hindernisse zeichnen
-        obstacles.draw(g2d, this);
-        g2d.setStroke(new BasicStroke(1));
-        for(EnemyCar enemy : obstacles.getEnemys()){
-            g2d.draw(enemy.getHitbox());
-        }
+        obstacles.draw(g2d); //draw obstacles
 
-        //Auto zeichnen
-        drawCar(g2d);
+        drawCar(g2d); //draw car
 
-        //Tankfüllung zeichnen
-        drawFuel(g2d);
+        drawFuel(g2d); //draw fuel
 
         if(startTimer.isRunning())
-            drawStartCounter(g2d);
+            drawStartCounter(g2d); //if start timer is running, draw the start counter
         else
-            drawScore(g2d);
+            drawScore(g2d); //if game is running draw the score
     }
     public void drawStreet(Graphics2D g2d){
-        //Straßen zeichnen
-        streetManager.draw(g2d);
+        streetManager.draw(g2d); //draw road
 
-        //Seitenstreifen
+        //draw side stripe
         Rectangle bounds = streetManager.getBoundingRect();
         Rectangle rect = new Rectangle(bounds.x, bounds.y - 20, bounds.width, bounds.height + 40);
         g2d.setColor(new Color(255, 255, 255));
@@ -200,67 +202,64 @@ public class GameBoard extends JPanel implements ActionListener{
         g2d.draw(rect);
     }
     public void drawCar(Graphics2D g2d){
-        if(car.isVisible())
-            g2d.drawImage(car.getImage(), car.getX(), car.getY(), this);
-        g2d.setColor(new Color(0x34B228));
-        g2d.setStroke(new BasicStroke(1));
-        g2d.draw(car.getHitbox());
+        if(car.isVisible()) //if player car is visible
+            g2d.drawImage(car.getImage(), car.getX(), car.getY(), this); //draw its image
     }
     public void drawFuel(Graphics2D g2d){
-        int width = 100;
-        int height = 15;
+        int width = (int)(100*MainWindow.scale);
+        int height = (int)(15*MainWindow.scale);
         int x = (int)(10*MainWindow.scale);
         int y = (int)(10*MainWindow.scale);
             
-        drawFuel(g2d, x, y, width, height, car.getFuelPercent());
+        drawFuel(g2d, x, y, width, height, car.getFuelPercent()); //draw fuel in upper left corner
 
-        if(fuelBelowCar){
+        if(fuelBelowCar){ //if activated draw fuel below car
             x = car.getX() - (int)(width*MainWindow.scale) / 2 + car.getWidth()/2;
             y = car.getY() + car.getHeight() + (int)(20*MainWindow.scale);
             drawFuel(g2d, x, y, width, height, car.getFuelPercent());
         }
     }
-    public void drawFuel(Graphics2D g2d, int x, int y, int width, int height, double fuelPercent){
-    	width *= MainWindow.scale;
-    	height *= MainWindow.scale;
+    public void drawFuel(Graphics2D g2d, int x, int y, int width, int height, double fuelPercent){ //draw fuel at given position
     	g2d.setStroke(new BasicStroke(1));
     	g2d.setColor(new Color(0, 0, 0));
-    	g2d.drawRect(x,  y,  width, height);
-    	g2d.setColor(new Color((int)(255-fuelPercent*(255/100)), (int)(fuelPercent*(255/100)), 0));
-    	g2d.fillRect(x+1, y+1, (int)(fuelPercent*(width/100D))-1, height-1);
+    	g2d.drawRect(x,  y,  width, height); //border
+    	g2d.setColor(new Color((int)(255-fuelPercent*(255/100)), (int)(fuelPercent*(255/100)), 0)); //if fuel high --> green, fuel low --> red
+    	g2d.fillRect(x+1, y+1, (int)(fuelPercent*(width/100D))-1, height-1); //fuel (percent)
     }
     public void drawStartCounter(Graphics2D g2d){
-        String text = startTimerTime > 0 ? Integer.toString((int)startTimerTime/1000) : "Drive!!!";
-        Font font = new Font("Arial", Font.BOLD, (int)(40*MainWindow.scale));
+        String text = startTimerTime > 1000 ? Integer.toString((int)startTimerTime/1000+1) : "Drive!!!"; //if startcounter is 0, draw "Drive!!!" and not the counter
+        Font font = new Font("Arial", Font.BOLD, (int)(40*MainWindow.scale)); //set font and compute centered position
         g2d.setFont(font);
         FontMetrics metrics = g2d.getFontMetrics(font);
         int x = (getWidth() - metrics.stringWidth(text)) / 2;
         int y = ((getHeight() - metrics.getHeight()) / 2) + metrics.getAscent();
         g2d.setColor(new Color(255,255,255));
-        g2d.drawString(text, x, y);
+        g2d.drawString(text, x, y); //draw text
     }
     public void drawScore(Graphics2D g2d){
-        String text = Integer.toString((int)score);
-        Font font = new Font("Arial", Font.BOLD, (int)(40*MainWindow.scale));
+        String text = Integer.toString((int)score); //get score as string
+        Font font = new Font("Arial", Font.BOLD, (int)(40*MainWindow.scale)); //set font and compute position
         g2d.setFont(font);
         FontMetrics metrics = g2d.getFontMetrics(font);
-        int x = (getWidth() - metrics.stringWidth(text) - (int)(40*MainWindow.scale));
-        int y = ((metrics.getHeight()) + (int)(0*MainWindow.scale));
+        int x = (getWidth() - metrics.stringWidth(text) - (int)(50*MainWindow.scale));
+        int y = metrics.getHeight();
         g2d.setColor(new Color(255,255,255));
-        g2d.drawString(text, x, y);
+        g2d.drawString(text, x, y); //draw score
     }
 
 
     public void keyReleased(KeyEvent e){
-        car.keyReleased(e);
+        car.keyReleased(e); //pass key event to playercar where they get handled
     }
     public void keyPressed(KeyEvent e){
-        car.keyPressed(e);
+        car.keyPressed(e); //pass key event to playercar where they get handled
     }
-    private class TAdapter extends KeyAdapter {
+    private class TAdapter extends KeyAdapter { //Key listener
         @Override
-        public void keyReleased(KeyEvent e) {
-            GameBoard.this.keyReleased(e);
+            public void keyReleased(KeyEvent e) {
+                if(e.getKeyCode() == KeyEvent.VK_P)
+                    pause();
+                GameBoard.this.keyReleased(e);
         }
 
         @Override
