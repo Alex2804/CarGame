@@ -17,6 +17,7 @@ public class EnemyCar extends Car{
     private double speed; //speed for lane change
     private int xEnd; //target x-Position at lange change
     private boolean changing = false; //is EnemyCar changing its lane
+    private boolean accident = false;
 
     private StreetManager streetManager; //streetManager (get width of tracks)
 
@@ -33,6 +34,14 @@ public class EnemyCar extends Car{
         super(x, y, EnemyCar.imagePath, EnemyCar.realHitboxPath); //Object with x, y, image and hitbox file
         initVars(streetManager, horizontalSpeed, verticalSpeed, track); //set StreetManager, horizontal- and vertical speed and the track
     }
+    //This Constructor is for PoliceCar instance
+    protected EnemyCar(double x, double y, StreetManager streetManager, double horizontalSpeed, double verticalSpeed, int track, String imagePath, String realHitboxPath){
+        super(x, y, imagePath, realHitboxPath); //Object with x, y, image and hitbox file
+        this.streetManager = streetManager;
+        setHorizontalSpeed(horizontalSpeed);
+        setVerticalSpeed(verticalSpeed);
+        this.track = track;
+    }
     private void initVars(StreetManager streetManager, double horizontalSpeed, double verticalSpeed, int track){ //Initialize parameter with given values, called by constructors
         this.streetManager = streetManager;
         setHorizontalSpeed(horizontalSpeed);
@@ -46,22 +55,35 @@ public class EnemyCar extends Car{
         }
     }
 
-    public void update(){ //Called by GameLoop
-        moveRelative(getHorizontalSpeed(), getVerticalSpeed(), 0, streetManager.getSpeed()); //moves relative to the street
+    public StreetManager getStreetManager(){
+        return streetManager;
+    }
+    public void setAccident(boolean accident) {
+        this.accident = accident;
+    }
+    public boolean isAccident() {
+        return accident;
+    }
 
-        if(speed > 0 && changing){ //if changing to right
-            if(getX() >= xEnd){ //if x end position reached
-                setHorizontalSpeed(0); //don't move horizontal
-                track = targetTrack; //set track to new track
-                changing = false; //not changing anymore
+    public void update(){ //Called by GameLoop
+        if(!isAccident()) {
+            moveRelative(getHorizontalSpeed(), getVerticalSpeed(), 0, streetManager.getSpeed()); //moves relative to the street
+
+            if (speed > 0 && changing) { //if changing to right
+                if (getX() >= xEnd) { //if x end position reached
+                    setHorizontalSpeed(0); //don't move horizontal
+                    track = targetTrack; //set track to new track
+                    changing = false; //not changing anymore
+                }
+            } else if (speed < 0 && changing) { //if changing to left
+                if (getX() <= xEnd) { //if x end position reached
+                    setHorizontalSpeed(0); //don't move horizontal
+                    track = targetTrack; //set track to new track
+                    changing = false; //not changing anymore
+                }
             }
-        } else if(speed < 0 && changing){ //if changing to left
-            if(getX() <= xEnd){ //if x end position reached
-                setHorizontalSpeed(0); //don't move horizontal
-                track = targetTrack; //set track to new track
-                changing = false; //not changing anymore
-            }
-        }
+        }else
+            moveRelative(0, 0, 0, streetManager.getSpeed()); //moves relative to the street
     }
 
     public void setTrack(int track){
@@ -84,8 +106,9 @@ public class EnemyCar extends Car{
 
             int xStart = getX(); //start position is current position
             xEnd = xStart + StreetManager.getSampleStreet().getWidth() * (targetTrack - track); //endposition is start position +/- track difference * track width
+            return true;
         }
-        return true; //if not aborted, return true for sucessful initialized lane change
+        return false; //if not aborted, return true for sucessful initialized lane change
     }
     public int getNewRandomTrack(){
         int newTrack = ThreadLocalRandom.current().nextInt(0, streetManager.getHorizontalStreetCount()); //generates random track, in range of the streetmanager horizontal lane count

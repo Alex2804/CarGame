@@ -17,7 +17,7 @@ public class StreetManager { //Manages the road
     private double y = 0; //y of road
     private JPanel panel; //panel of streetManager
     private double defaultSpeed = 5; //default speed
-    private double maxSpeed = 11; //max speed with increaseSpeed()
+    private double maxSpeed = (int)11*MainWindow.scale; //max speed with increaseSpeed()
     private double speed = defaultSpeed; //speed
     private int spacing = 30; //minimal distance between left panel edge and first street
     private int xAdditive = 0; //real distance between left panel edge and first street
@@ -49,7 +49,7 @@ public class StreetManager { //Manages the road
         setXAdditive(getSpacing() + ((width % streetWidth) / 2)); //unused horizontal space
 
         for(int i = 0; i < getHorizontalStreetCount(); i++){ //fill columns
-            for(int j = -3; j <= getVerticalStreetCount(); j++){ //fill rows
+            for(int j = -4; j <= getVerticalStreetCount(); j++){ //fill rows
                 Object street = new Object(getXAdditive() + i * streetWidth, j * streetHeight + y, imagePath); //create street Object
                 streets.add(street); //add street Object to list
             }
@@ -59,6 +59,9 @@ public class StreetManager { //Manages the road
     public double getSpeed(){
         return Math.round(((speed/MainWindow.scale)*10)/10);
     }
+    public double speed(){
+    	return Math.round((speed*10)/10);
+    }
     public void setSpeed(double speed){
         this.speed = Math.round(((speed*MainWindow.scale)*10)/10); //speed depends on scale ratio and is rounded to 1 decimal
     }
@@ -66,10 +69,12 @@ public class StreetManager { //Manages the road
         setSpeed(defaultSpeed);
     }
     public boolean increaseSpeed(double count){
-        if(speed + count <= maxSpeed){
-            speed += count;
+        if((int)(getSpeed() + count) <= maxSpeed){
+            setSpeed(getSpeed() + 1);
             return true;
         }
+        else
+            setSpeed(maxSpeed);
         return false;
     }
     public int getHorizontalStreetCount(){

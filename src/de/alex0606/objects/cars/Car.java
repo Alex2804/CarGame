@@ -9,7 +9,7 @@ import java.awt.geom.*;
 public abstract class Car extends Object{
     private static String imagePath = "res/car.png"; //standard car image
 
-    private double verticalSpeed = 0; //vertical speed of the car
+    public double verticalSpeed = 0; //vertical speed of the car
     private double horizontalSpeed = 0; //horizontal speed of the car
 
     public Car(double x, double y){

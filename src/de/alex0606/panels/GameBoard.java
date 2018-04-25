@@ -63,17 +63,16 @@ public class GameBoard extends JPanel implements ActionListener{
             listener.gameStarted(); //call listeners, that game starts
         }
         reset(); //reset all necessary
-        obstacles.startThread(); //obstacles collision has to be checked in extra thread
         gameTimer.start(); //start game loop
     }
     public void reset(){
         setGameOver(false); //game is not over
         setPause(false); //and not paused
-        obstacles.thread.interrupt(); //stop thread
         obstacles = new ObstacleManager(streetManager); //reset obstacles
         car.moveTo((getWidth()/2) - (car.getWidth()/2), getHeight() * 0.6); //reset car position
         car.reset(); //reset car
         streetManager.resetSpeed(); //set road speed to default
+        streetSpeedTime = 0;
         score = 0; //reset score
     }
     public void gameOver(){
@@ -81,7 +80,6 @@ public class GameBoard extends JPanel implements ActionListener{
             listener.gameOver(getScore()); //tell listeners that game is over (stopped)
         }
         setGameOver(true); //set gameOver true
-        obstacles.stopThread(); //stop obstacle collision checks
         gameTimer.stop(); //stop game loop
     }
     public boolean getGameOver(){
@@ -102,7 +100,6 @@ public class GameBoard extends JPanel implements ActionListener{
         }
         gameTimer.stop(); //stop game loop
         setPause(true); //pause is true
-        obstacles.stopThread(); //stop obstacle collision checks
         startTimer.stop(); //stop start sequence
     }
     public void setPause(boolean pause) {
@@ -113,11 +110,10 @@ public class GameBoard extends JPanel implements ActionListener{
     }
 
     public void continueGame(){
-        if(startTimerTime > 0) { //if start sequence was running before paused
+        if(startTimerTime > -1000) { //if start sequence was running before paused
             startTimer.start(); //continue start sequence
         }else{ //if start sequence was over
             gameTimer.start(); //restart game loop
-            obstacles.startThread(); //and continue obstacle collision checks
         }
         setPause(false); //pause is false
     }
@@ -126,8 +122,9 @@ public class GameBoard extends JPanel implements ActionListener{
     public void actionPerformed(ActionEvent e) {
         if(e.getSource().equals(gameTimer)){ //if in game loop
             score += streetManager.getSpeed()/10; //add streetmanager distance to score
-            obstacles.update(getHeight()); //update all obstacles (move + generate)
             car.update(); //update car (move it)
+            obstacles.update(getHeight()); //update all obstacles (move + generate)
+            obstacles.updatePoliceCars(car);
             streetSpeedTime += System.currentTimeMillis() - timeStart; //increase time since last road speedup
             timeStart = System.currentTimeMillis(); //save time to calculate elapsed time
             if(streetSpeedTime >= 15000){ //if 15 seconds left since last road speedup
@@ -143,7 +140,7 @@ public class GameBoard extends JPanel implements ActionListener{
             startTimerTime -= System.currentTimeMillis() - timeStart; //time left until start sequence stops
             timeStart = System.currentTimeMillis(); //save time to calculate elapsed time
 
-            if(startTimerTime < 0){ //if start timer reached 0 (start sequence is over)
+            if(startTimerTime < -1000){ //if start timer reached 0 (start sequence is over)
                 startTimer.stop(); //stop the start sequence timer
                 startGame(); //start the game
             }
@@ -154,7 +151,7 @@ public class GameBoard extends JPanel implements ActionListener{
 
         repaint(); //repaint the gameBoard
 
-        if(!carOnRoad() || obstacles.checkObstacleCollision(car) || car.getFuel() <= 0){ //if car is off road or collides with an obstacle
+        if(!carOnRoad() || obstacles.checkObstacleCollision(car) || car.getFuel() <= 0){ //if car is off road or collides with an obstacle or has no fuel
             gameOver(); //the game is over
         }
 
@@ -181,6 +178,12 @@ public class GameBoard extends JPanel implements ActionListener{
         drawStreet(g2d); //draw Streets
 
         obstacles.draw(g2d); //draw obstacles
+        g2d.setStroke(new BasicStroke(1));
+        for(PoliceCar police : obstacles.getPolice()){
+            g2d.draw(police.getForwardHitbox());
+            g2d.draw(police.getLeftHitbox());
+            g2d.draw(police.getRightHitbox());
+        }
 
         drawCar(g2d); //draw car
 
@@ -214,7 +217,7 @@ public class GameBoard extends JPanel implements ActionListener{
         drawFuel(g2d, x, y, width, height, car.getFuelPercent()); //draw fuel in upper left corner
 
         if(fuelBelowCar){ //if activated draw fuel below car
-            x = car.getX() - (int)(width*MainWindow.scale) / 2 + car.getWidth()/2;
+            x = car.getX() - width/ 2 + car.getWidth()/2;
             y = car.getY() + car.getHeight() + (int)(20*MainWindow.scale);
             drawFuel(g2d, x, y, width, height, car.getFuelPercent());
         }
@@ -227,7 +230,7 @@ public class GameBoard extends JPanel implements ActionListener{
     	g2d.fillRect(x+1, y+1, (int)(fuelPercent*(width/100D))-1, height-1); //fuel (percent)
     }
     public void drawStartCounter(Graphics2D g2d){
-        String text = startTimerTime > 1000 ? Integer.toString((int)startTimerTime/1000+1) : "Drive!!!"; //if startcounter is 0, draw "Drive!!!" and not the counter
+        String text = startTimerTime > 0 ? Integer.toString((int)(startTimerTime/1000)+1) : "Drive!!!"; //if startcounter is 0, draw "Drive!!!" and not the counter
         Font font = new Font("Arial", Font.BOLD, (int)(40*MainWindow.scale)); //set font and compute centered position
         g2d.setFont(font);
         FontMetrics metrics = g2d.getFontMetrics(font);

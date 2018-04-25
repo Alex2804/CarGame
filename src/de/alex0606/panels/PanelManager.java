@@ -1,7 +1,5 @@
 package de.alex0606.panels;
 
-import com.jogamp.opengl.util.awt.ImageUtil;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;

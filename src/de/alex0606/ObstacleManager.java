@@ -3,21 +3,28 @@ package de.alex0606;
 import de.alex0606.objects.Object;
 import de.alex0606.objects.cars.EnemyCar;
 import de.alex0606.objects.cars.PlayerCar;
+import de.alex0606.objects.cars.PoliceCar;
 
+import javax.rmi.CORBA.Util;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.lang.Thread;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ObstacleManager implements Runnable{
-    private EnemyCar sampleEnemey; //EnemyCar to get dimensions
+public class ObstacleManager{
+    private EnemyCar sampleEnemey; //EnemyCar to get dimensions from
+    private PoliceCar samplePolice; //PoliceCar to get dimensions from
 
     private ArrayList<EnemyCar> enemys; //holds all enemys
     private ArrayList<Object> barriers; //holds all barriers
     private ArrayList<Object> fuelTanks; //holds all fuel tanks
+    private ArrayList<PoliceCar> police; //holds all PoliceCar's
     private StreetManager streetManager; //holds reference to streetManager
+
+    private int collisionCounter = 0;
 
     private ThreadLocalRandom random = ThreadLocalRandom.current();
 
@@ -44,9 +51,10 @@ public class ObstacleManager implements Runnable{
     private double newFuelTank = 0; //distance since fueltank was generated
     private double newFuelTankDistanceAdditive = PlayerCar.getFuelMaxDistance() * 0.02; //distance, added to the distance after which a new fueltank gets generated, after every new fueltank
 
-    public Thread thread = new Thread(this); //thread in which hitbox intersection of obstacles under each other gets checked
-    private int threadSpeed = 200; //delay of the thread
-    private AtomicBoolean gameOver = new AtomicBoolean(true);
+    private double newPoliceCarTimeMax = 10000;
+    private double newPoliceCarTime = 0;
+    private int maxPoliceCount = 2;
+    private double newPoliceCar = newPoliceCarTimeMax / 2;
 
     public ObstacleManager(StreetManager streetManager){
         init(streetManager, new ArrayList<EnemyCar>(), new ArrayList<Object>()); //new ObstacleManager with no enemys and barriers
@@ -57,41 +65,36 @@ public class ObstacleManager implements Runnable{
     private void init(StreetManager streetManager, ArrayList<EnemyCar> enemys, ArrayList<Object> barriers){ //initialize params with given values, called by constructors
         setEnemys(enemys);
         setBarriers(barriers);
+        setPolice(new ArrayList<PoliceCar>());
         this.streetManager = streetManager;
         sampleEnemey = new EnemyCar(0, 0, streetManager);
+        samplePolice = new PoliceCar(0, 0, streetManager, 0, 0, 0);
         setFuelTanks(new ArrayList<>());
         timeStart = System.currentTimeMillis(); //reset time
     }
 
-    @Override
-    public void run() {
-        while (!gameOver.get()) { //run as long as gameOver is not true and ObstacleManager is alive
-            try {
-                checkEnemeyEnemyCollision(); //checks if enemys collide under each other
-                checkEnemyBarrierCollision(); //checks if enemys collide with barriers
-
-                Thread.sleep(threadSpeed); //sleeps, for delay
-            } catch (InterruptedException e) {
-                String msg = String.format("Thread interrupted: %s", e.getMessage());
-                System.out.println(msg);
+    public void generateObstacles(int height) {
+        newFuelTank += streetManager.getSpeed(); //add speed of street to distance, until new fueltank is generated
+        if(newFuelTank >= newFuelTankDistance / ((int)(streetManager.getHorizontalStreetCount() * 0.1) + 1)){ //if distance since last fueltank is equal or higher as given distance
+            if(newFuelTankDistance + newFuelTankDistanceAdditive < newFuelTankDistanceMax){
+                newFuelTankDistance += newFuelTankDistanceAdditive; //increase distance until new fueltank
             }
+            newFuelTank = 0; //set distance since last fueltank to 0
+            addNewFuelTank(); //generate new fueltank
         }
-    }
-    public void stopThread(){
-        gameOver.set(true); //while loop in thread interrupted (condition is false)
-    }
-    public void startThread(){
-        gameOver.set(false); //while loop in thread can run (condition is true)
-        thread = new Thread(this); //create thred (can't start stopped thread)
-        thread.start(); // start thread
-    }
 
-    public void generateObstacles() {
         //increase times since last repeat
+        newPoliceCarTime += (System.currentTimeMillis()) - timeStart;
         freeTrackTime += (System.currentTimeMillis() - timeStart);
         enemyTime += (System.currentTimeMillis() - timeStart);
         changeTrackTime += (System.currentTimeMillis() - timeStart);
         timeStart = System.currentTimeMillis();
+
+        if(newPoliceCarTime >= newPoliceCar && getPolice().size() < maxPoliceCount){
+            newPoliceCarTime = 0;
+            newPoliceCar = newPoliceCarTimeMax;
+            addNewPolice(height);
+        }
 
         if(freeTrackTime >= changeFreeTrack){ //if time since last free track change is big enough
             freeTrack = random.nextInt(0, streetManager.getHorizontalStreetCount()); //new random free track
@@ -151,41 +154,78 @@ public class ObstacleManager implements Runnable{
         EnemyCar enemy = new EnemyCar(x, y, streetManager, horizontalSpeed, verticalSpeed, track); //create new enemy object
         return enemy; //return created enemy
     }
+    public boolean addNewPolice(int height){
+        PoliceCar policeCar = getNewPolice(height);
+        if(!checkObstacleCollision(policeCar)){
+            addToPolice(policeCar);
+            return true;
+        }
+        return false;
+    }
+    public PoliceCar getNewPolice(int height){
+        int track = random.nextInt(0, streetManager.getHorizontalStreetCount()); //get new track until it isn't free track or the last track
+
+        int xAdditive = random.nextInt(1,StreetManager.getSampleStreet().getWidth() - samplePolice.getWidth() - 1); //not centered in lane
+        int x = streetManager.getXAdditive() + StreetManager.getSampleStreet().getWidth() * track + xAdditive; //x (track * streetwidth + xadditive, that not centered)
+
+        int y = height; //y out of panel
+        double horizontalSpeed = 0; //horizontal speed = 0
+        double verticalSpeed = 0; //vertical speed
+
+        PoliceCar police = new PoliceCar(x, y, streetManager, horizontalSpeed, verticalSpeed, track);
+        return police;
+    }
 
     public void update(int height){//update necessary
         move(); //move all obstacles
-        generateObstacles(); //check if new obstacles has to been generated
+        generateObstacles(height); //check if new obstacles has to been generated
         remove(height); //remove obstacles, which are out of the given height (panel)
 
-        newFuelTank += streetManager.getSpeed(); //add speed of street to distance, until new fueltank is generated
-        if(newFuelTank >= newFuelTankDistance / ((int)(streetManager.getHorizontalStreetCount() * 0.1) + 1)){ //if distance since last fueltank is equal or higher as given distance
-            if(newFuelTankDistance + newFuelTankDistanceAdditive < newFuelTankDistanceMax){
-                newFuelTankDistance += newFuelTankDistanceAdditive; //increase distance until new fueltank
-            }
-            newFuelTank = 0; //set distance since last fueltank to 0
-            addNewFuelTank(); //generate new fueltank
+        collisionCounter ++;
+        if(collisionCounter == 10){
+            collisionCounter = 0;
+
+            checkEnemeyEnemyCollision(); //checks if enemys collide under each other
+            checkEnemyBarrierCollision(); //checks if enemys collide with barriers
+            checkPoliceObstacleCollision(); //checks if a police car collides with an other obstacle
+        }
+    }
+    public void updatePoliceCars(PlayerCar target){
+        for(PoliceCar police : getPolice()){
+            police.updateTrack(this, target);
         }
     }
 
-    public boolean checkObstacleCollision(Object object){ //checks if hitbox of object intersects with hitbox of any obstacle
+
+    public boolean checkObstacleCollision(Object object){
         if(object instanceof PlayerCar){ //if object is an player car
             checkFuelTankCollision((PlayerCar) object); //check if colliding with fueltank
         }
-        return (checkEnemyCollision(object) || checkBarrierCollision(object)); //return false if not intersecting with anything
+        return checkObstacleCollision(object.getHitbox());
+    }
+    public boolean checkObstacleCollision(Area hitbox){ //checks if hitbox of object intersects with hitbox of any obstacle
+        return (checkEnemyCollision(hitbox) || checkBarrierCollision(hitbox)); //return false if not intersecting with anything
     }
 
-    public boolean checkEnemyCollision(Object object){ //check if colliding with any enemy
+    public boolean checkEnemyCollision(Area hitbox){ //check if colliding with any enemy
         for (EnemyCar enemyCar : getEnemys()) {
-            if(object.checkHitboxIntersection(enemyCar) == true){
+            if(enemyCar.checkHitboxIntersection(hitbox) == true){
                 return true; //if colliding leave method and return true
             }
         }
         return false;
     }
-    public boolean checkBarrierCollision(Object object){ //check if colliding with any barrier
+    public boolean checkBarrierCollision(Area hitbox){ //check if colliding with any barrier
         for(Object barrier : getBarriers()){
-            if(object.checkHitboxIntersection(barrier))
+            if(barrier.checkHitboxIntersection(hitbox))
                 return true; //if colliding leave method and return ture
+        }
+        return false;
+    }
+    public boolean checkPoliceCollision(Area hitbox){
+        for(PoliceCar police : getPolice()){
+            if(police.checkHitboxIntersection(hitbox))
+                return true;
         }
         return false;
     }
@@ -204,7 +244,7 @@ public class ObstacleManager implements Runnable{
         for(Object barrier : getBarriers()){
             for(EnemyCar enemyCar : getEnemys()){
                 if(enemyCar.checkHitboxIntersection(barrier) == true){
-                    enemyCar.setSpeed(0, 0); //set speed of enemy to 0
+                    enemyCar.setAccident(true);
                 }
             }
         }
@@ -216,8 +256,23 @@ public class ObstacleManager implements Runnable{
 
             for (EnemyCar enemy2 : enemysCache) {
                 if (enemy1.checkHitboxIntersection(enemy2)) {
-                    enemy1.setSpeed(0, 0); //set speed of both colliding enemys to 0
-                    enemy2.setSpeed(0, 0);
+                    enemy1.setAccident(true);
+                    enemy2.setAccident(true);
+                }
+            }
+        }
+    }
+    public void checkPoliceObstacleCollision(){
+        for(PoliceCar police : getPolice()){
+            for(EnemyCar enemyCar : getEnemys()){
+                if(police.checkHitboxIntersection(enemyCar)){
+                    police.setAccident(true);
+                    enemyCar.setAccident(true);
+                }
+            }
+            for(Object barrier : getBarriers()){
+                if(police.checkHitboxIntersection(barrier)){
+                    police.setAccident(true);
                 }
             }
         }
@@ -227,6 +282,7 @@ public class ObstacleManager implements Runnable{
         removeEnemys(height);
         removeBarriers(height);
         removeFuelTanks(height);
+        removePolice(height);
     }
     public void removeEnemys(int height){
         for(EnemyCar enemy : getEnemys()){
@@ -249,11 +305,19 @@ public class ObstacleManager implements Runnable{
             }
         }
     }
+    public void removePolice(int height){
+        for(PoliceCar police : getPolice()){
+            if(police.getY() > 2*height || police.getY() < -police.getHeight()){
+                removeFromPolice(police);
+            }
+        }
+    }
 
     public void move(){ //move all obstacles
         moveEnemys();
         moveBarriers();
         moveFuelTanks();
+        movePolice();
     }
     public void moveEnemys(){ //move EnemyCar objects
         for(EnemyCar enemy : getEnemys()){
@@ -267,7 +331,12 @@ public class ObstacleManager implements Runnable{
     }
     public void moveFuelTanks(){ //move fueltank objects
         for(Object fuelTank : getFuelTanks()){
-            fuelTank.moveVertical(streetManager.getSpeed());
+            fuelTank.moveVertical(streetManager.speed());
+        }
+    }
+    public void movePolice(){
+        for(PoliceCar police : getPolice()){
+            police.update();
         }
     }
 
@@ -275,6 +344,7 @@ public class ObstacleManager implements Runnable{
         drawFuelTanks(g2d);
         drawEnemys(g2d);
         drawBarriers(g2d);
+        drawPolice(g2d);
     }
     public void drawEnemys(Graphics2D g2d){ //draw enemys
         for(EnemyCar enemy : getEnemys()){
@@ -289,6 +359,11 @@ public class ObstacleManager implements Runnable{
     public void drawFuelTanks(Graphics2D g2d){ //draw fueltanks
         for(Object fuelTank : getFuelTanks()){
             g2d.drawImage(fuelTank.getImage(), fuelTank.getX(), fuelTank.getY(), null);
+        }
+    }
+    public void drawPolice(Graphics2D g2d){
+        for(PoliceCar police : getPolice()){
+            g2d.drawImage(police.getImage(), police.getX(), police.getY(), null);
         }
     }
 
@@ -339,6 +414,26 @@ public class ObstacleManager implements Runnable{
     public EnemyCar getEnemy(int index){
         synchronized (enemys){
             return enemys.get(index);
+        }
+    }
+
+    public ArrayList<PoliceCar> getPolice(){
+        synchronized (police){
+            ArrayList police = new ArrayList(this.police);
+            return police;
+        }
+    }
+    public void setPolice(ArrayList<PoliceCar> police){
+        this.police = police;
+    }
+    public void addToPolice(PoliceCar police){
+        synchronized (this.police){
+            this.police.add(police);
+        }
+    }
+    public void removeFromPolice(PoliceCar police){
+        synchronized (police){
+            this.police.remove(police);
         }
     }
 
