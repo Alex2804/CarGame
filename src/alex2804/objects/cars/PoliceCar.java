@@ -13,8 +13,7 @@ import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 
 public class PoliceCar extends EnemyCar implements ActionListener {
-    private static String imagePath = "res/policecarleft.png"; //Path to image
-    public static String hitboxPath = "res/policecarhitbox.ser"; //path to pixel hitbox Area
+    public static String hitboxPath = "res/hitboxes/policecarhitbox.ser"; //path to pixel hitbox Area
     private static String realHitboxPath = hitboxPath; //is set to null if hitbox was generated (or read from file)
     private static Area hitbox; //pixel hitbox is stored
 
@@ -22,11 +21,11 @@ public class PoliceCar extends EnemyCar implements ActionListener {
     private boolean right = false;
     private static BufferedImage leftImage = null;
     private static BufferedImage rightImage = null;
-    private static String imagePathLeft = "res/policecarleft.png"; //Path to image
-    private static String imagePathRight = "res/policecarright.png"; //Path to image
+    private static String imagePathLeft = "res/images/policecarleft.png"; //Path to image
+    private static String imagePathRight = "res/images/policecarright.png"; //Path to image
 
     public PoliceCar(double x, double y, StreetManager streetManager, double horizontalSpeed, double verticalSpeed, int track){
-        super(x, y, streetManager, horizontalSpeed, verticalSpeed, track, imagePath, hitboxPath); //Object with x, y, image and hitbox file
+        super(x, y, streetManager, horizontalSpeed, verticalSpeed, track, imagePathLeft, hitboxPath); //Object with x, y, image and hitbox file
 
         //create / read hitbox if it's the first instance or set hitbox to created / read hitbox
         if(realHitboxPath == null){

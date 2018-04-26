@@ -58,7 +58,7 @@ class StartMenu extends Menu implements LanguageListener{
         c.fill = c.HORIZONTAL;
         c.ipady = 30;
 
-        logo = new ImageIcon("res/logo.png");
+        logo = new ImageIcon("res/images/logo.png");
         logo = new ImageIcon(logo.getImage().getScaledInstance((int)(logo.getIconWidth() * MainWindow.scale), (int)(logo.getIconHeight() * MainWindow.scale), BufferedImage.SCALE_SMOOTH));
         logoLabel = new JLabel(logo);
         c.gridy = 0;
@@ -173,7 +173,7 @@ class GameOverMenu extends Menu implements LanguageListener{
         c.ipady = 30;
 
 
-        gameOverIcon = new ImageIcon("res/gameover.png");
+        gameOverIcon = new ImageIcon("res/images/gameover.png");
         gameOverIcon = new ImageIcon(gameOverIcon.getImage().getScaledInstance((int)(gameOverIcon.getIconWidth() * MainWindow.scale), (int)(gameOverIcon.getIconHeight() * MainWindow.scale), BufferedImage.SCALE_SMOOTH));
         gameOverLabel = new JLabel(gameOverIcon);
         c.gridy = 0;
@@ -311,7 +311,7 @@ class SettingsMenuControlPanel extends Menu{
     public SettingsMenuControlPanel(){
         GridBagConstraints c = new GridBagConstraints();
 
-        homeIcon = new ImageIcon("res/home.png");
+        homeIcon = new ImageIcon("res/images/home.png");
         homeIcon = new ImageIcon(homeIcon.getImage().getScaledInstance((int)(homeIcon.getIconWidth() * MainWindow.scale), (int)(homeIcon.getIconHeight() * MainWindow.scale), BufferedImage.SCALE_SMOOTH));
         homeButton = new JButton(homeIcon);
         homeButton.setBackground(new Color(0, 0, 0, 0));
@@ -347,7 +347,7 @@ class StartMenuControlPanel extends Menu{
     public StartMenuControlPanel(){
         GridBagConstraints c = new GridBagConstraints();
 
-        settingsIcon = new ImageIcon("res/settings.png");
+        settingsIcon = new ImageIcon("res/images/settings.png");
         settingsIcon = new ImageIcon(settingsIcon.getImage().getScaledInstance((int)(settingsIcon.getIconWidth() * MainWindow.scale), (int)(settingsIcon.getIconHeight() * MainWindow.scale), BufferedImage.SCALE_SMOOTH));
         settingsButton = new JButton(settingsIcon);
         settingsButton.setBackground(new Color(0, 0, 0, 0));

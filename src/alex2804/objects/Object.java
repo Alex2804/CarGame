@@ -84,7 +84,13 @@ public class Object{
             return createPixelHitbox();
     }
     private Area createWriteHitbox(){
-        System.out.println("create write " + hitboxPath);
+        File dir = new File("res/hitboxes");
+        if(!dir.exists()){
+            System.out.println("creating directory \"hitboxes\"");
+            dir.mkdir();
+        }
+
+        System.out.println("create/write " + hitboxPath);
         Area hitboxArea = createPixelHitbox(); //Create pixelhitbox-area
         try{
             FileOutputStream fos = new FileOutputStream(hitboxPath);

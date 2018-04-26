@@ -12,7 +12,7 @@ public class MainWindow extends JFrame{
     //public static double scale = 1280 / 1920D;
 
     public MainWindow(){
-        setIconImage(new ImageIcon("res/logo.png").getImage());
+        setIconImage(new ImageIcon("res/images/logo.png").getImage());
         setResizable(true);
 
         int width = 600;
