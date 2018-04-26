@@ -10,6 +10,10 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+* The abstract Menu class is the parent of alle shown menus. Components can easily get added with GridBagConstraints.
+* By default the Menus are Semitransparent with an alpha of 150. Passed JButtons are scaled automatically.
+**/
 public abstract class Menu extends JPanel{
     private ArrayList<JComponent> components = new ArrayList<>();
     private ArrayList<Listener> listeners = new ArrayList<Listener>();
@@ -45,6 +49,7 @@ public abstract class Menu extends JPanel{
     }
 }
 
+//All following classes are based on Menu and add individual Components for each Menu
 class StartMenu extends Menu implements LanguageListener{
     ImageIcon logo = null;
     JLabel logoLabel;
