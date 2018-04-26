@@ -7,6 +7,14 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.*;
 
+/**
+* This class manages the showing and hiding of the menus. Also the blur effect is managed in this class.
+* Their are 3 Containers, which are displayed in layers.
+* - BlurGameBoard - The BlurGameBoard is the lowest Component, which displays the game.
+* - Menus - The Menus are on top of the BlurGameBoard, that the buttons are in foreground.
+* - MenuControlPanel - The MenuControlPanel (inherits from Menu, too), is the top level Component and provide basic Components,
+*       to (for example) change Menus.
+**/
 public class PanelManager extends JPanel implements Listener, ActionListener{
     BlurGameBoard gameBoard;
     StartMenu startMenu;
