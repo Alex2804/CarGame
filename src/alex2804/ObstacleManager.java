@@ -10,6 +10,12 @@ import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
+
+/**
+* This class provides functions to manage barrier Objects, fuelTank Objects, EnemyCars and PoliceCars. It updates all the
+* obstacles at once when update(int height) ist called. It moves the obstacles, create new obstacles and have methods for
+* collision detection with any Object (with image and hitbox).
+**/
 public class ObstacleManager{
     private EnemyCar sampleEnemey; //EnemyCar to get dimensions from
     private Object sampleBarrier;
