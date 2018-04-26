@@ -8,6 +8,10 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 
+/**
+* This class manages many Ojects with street images, as they are one big road.
+* It moves all the Objects with the same speed and is never ending
+**/
 public class StreetManager { //Manages the road
     public static String imagePath = "res/images/street.png"; //Path to street image
     private static Object sampleStreet = new Object(0, 0, imagePath); //street to get its width and height
