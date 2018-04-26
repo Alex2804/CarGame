@@ -18,7 +18,9 @@ import java.awt.event.*;
 import java.io.File;
 import java.util.ArrayList;
 
-
+/**
+* This is the panel on which the game is drawn at. It holds the gameloop and determines the gameplay.
+**/
 public class GameBoard extends JPanel implements ActionListener{
     private ArrayList<Listener> listeners = new ArrayList<Listener>(); //game listeners
     public void addListener(Listener listener){
