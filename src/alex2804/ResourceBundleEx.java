@@ -7,6 +7,11 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+
+/**
+* This class manages the languages. with keys there are stored words in different languages (english and german yet).
+* You can get words by their keys in choosen language.
+**/
 public class ResourceBundleEx{
     private static ArrayList<LanguageListener> listeners = new ArrayList<LanguageListener>(); //game listeners
     public static void addListener(LanguageListener listener){
