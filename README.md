@@ -5,7 +5,7 @@ It was written in Java and Swing (a rewrite with OpenGL is planed).
 
 
 ## Sprites
-#### Structure:
+#### Inheration Tree:
 - Object
   - Car
     - PlayerCar
@@ -25,13 +25,16 @@ There are extra hitbox.ser files for **EnemyCar**, **PlayerCar**, **PoliceCar** 
 
 ## Game
 #### Structure:
-- GameBoard
-- PanelManager
-- Menu
+- panel
+  - GameBoard
+  - PanelManager
+   - Menu
+  - LanguageListener
+  - Listener
 _ ObstacleManager
 - StreetManager
-- (Language)Listener
 - ResourceBundleEx
+- MainWindow
 
 In the **GameBoard** class, the gameloop is running. In the gameloop, all positions of the obstacles and cars are updated. Also it is checked, if the **PlayerCar** collides with any other obstacle. Also the repainting is done in the gameloop after every update.
 
