@@ -1,13 +1,13 @@
-package de.alex0606.objects.cars;
+package alex2804.objects.cars;
 
 
-import de.alex0606.StreetManager;
+import alex2804.StreetManager;
 
 import java.awt.geom.Area;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class EnemyCar extends Car{
-    private static String imagePath = "res/car.png"; //Path to image
+    private static String imagePath = "res/enemycar.png"; //Path to image
     public static String hitboxPath = "res/enemycarhitbox.ser"; //path to pixel hitbox Area
     private static String realHitboxPath = hitboxPath;
     private static Area hitbox;

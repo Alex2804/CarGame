@@ -1,4 +1,4 @@
-package de.alex0606.panels;
+package alex2804.panels;
 
 public interface Listener {
     void gameStarted();
@@ -9,4 +9,7 @@ public interface Listener {
     void pauseGame();
     void continueGame();
     void startMenu();
+    void settings();
+    void activatePoliceCar(boolean policeCar);
+    void activateSound(boolean sound);
 }

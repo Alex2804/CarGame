@@ -1,7 +1,6 @@
-package de.alex0606.objects;
+package alex2804.objects;
 
-import de.alex0606.MainWindow;
-import sun.applet.Main;
+import alex2804.MainWindow;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -142,6 +141,10 @@ public class Object{
         this.image = scaledImage; //set the image
 
         updateDimensions(); //update the object dimensions
+    }
+    public void setImageDirect(BufferedImage image){
+        this.image = image;
+        updateDimensions();
     }
     public BufferedImage getImage(){
         return image;

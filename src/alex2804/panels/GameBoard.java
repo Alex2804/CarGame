@@ -1,15 +1,21 @@
-package de.alex0606.panels;
+package alex2804.panels;
 
-import de.alex0606.MainWindow;
-import de.alex0606.ObstacleManager;
-import de.alex0606.StreetManager;
-import de.alex0606.objects.cars.*;
+import alex2804.MainWindow;
+import alex2804.ObstacleManager;
+import alex2804.StreetManager;
+import alex2804.objects.cars.PlayerCar;
+import alex2804.objects.cars.PoliceCar;
+import sun.audio.AudioPlayer;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 
 import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.event.*;
+import java.io.File;
 import java.util.ArrayList;
 
 
@@ -20,7 +26,7 @@ public class GameBoard extends JPanel implements ActionListener{
     } //add game listeners
 
     public StreetManager streetManager = new StreetManager(this); //manages road
-    public ObstacleManager obstacles = new ObstacleManager(streetManager); //manages obstacles
+    public ObstacleManager obstacles; //manages obstacles
 
     public PlayerCar car = new PlayerCar(300, 400, streetManager); //player car
 
@@ -38,6 +44,8 @@ public class GameBoard extends JPanel implements ActionListener{
 
     public boolean gameOver = true; //stores if game is over
     public boolean pause = false; //stores if game paused
+    public boolean policeCar = true;
+    public boolean sound = true;
 
     public GameBoard(){
         addKeyListener(new TAdapter()); //Listen to key events (if focused top level panel)
@@ -45,6 +53,7 @@ public class GameBoard extends JPanel implements ActionListener{
         setBackground(new Color(0, 100, 0)); //set Background color to green
         setDoubleBuffered(true); //enable doublebuffering (if it isn't enabled by default)
 
+        reset();
         gameTimer = new Timer(timerSpeed, this); //create game loop (timer)
         startTimer = new Timer(timerSpeed, this); //create start sequence timer
     }
@@ -63,12 +72,12 @@ public class GameBoard extends JPanel implements ActionListener{
             listener.gameStarted(); //call listeners, that game starts
         }
         reset(); //reset all necessary
+        setGameOver(false);
         gameTimer.start(); //start game loop
     }
     public void reset(){
-        setGameOver(false); //game is not over
         setPause(false); //and not paused
-        obstacles = new ObstacleManager(streetManager); //reset obstacles
+        obstacles = new ObstacleManager(streetManager, policeCar); //reset obstacles
         car.moveTo((getWidth()/2) - (car.getWidth()/2), getHeight() * 0.6); //reset car position
         car.reset(); //reset car
         streetManager.resetSpeed(); //set road speed to default
@@ -124,7 +133,8 @@ public class GameBoard extends JPanel implements ActionListener{
             score += streetManager.getSpeed()/10; //add streetmanager distance to score
             car.update(); //update car (move it)
             obstacles.update(getHeight()); //update all obstacles (move + generate)
-            obstacles.updatePoliceCars(car);
+            if(policeCar)
+                obstacles.updatePoliceCars(car);
             streetSpeedTime += System.currentTimeMillis() - timeStart; //increase time since last road speedup
             timeStart = System.currentTimeMillis(); //save time to calculate elapsed time
             if(streetSpeedTime >= 15000){ //if 15 seconds left since last road speedup
@@ -179,11 +189,6 @@ public class GameBoard extends JPanel implements ActionListener{
 
         obstacles.draw(g2d); //draw obstacles
         g2d.setStroke(new BasicStroke(1));
-        for(PoliceCar police : obstacles.getPolice()){
-            g2d.draw(police.getForwardHitbox());
-            g2d.draw(police.getLeftHitbox());
-            g2d.draw(police.getRightHitbox());
-        }
 
         drawCar(g2d); //draw car
 
@@ -260,7 +265,7 @@ public class GameBoard extends JPanel implements ActionListener{
     private class TAdapter extends KeyAdapter { //Key listener
         @Override
             public void keyReleased(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_P)
+                if(e.getKeyCode() == KeyEvent.VK_P && !getGameOver())
                     pause();
                 GameBoard.this.keyReleased(e);
         }

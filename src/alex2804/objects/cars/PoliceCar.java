@@ -1,19 +1,29 @@
-package de.alex0606.objects.cars;
+package alex2804.objects.cars;
 
-import de.alex0606.MainWindow;
-import de.alex0606.ObstacleManager;
-import de.alex0606.StreetManager;
+import alex2804.ObstacleManager;
+import alex2804.MainWindow;
+import alex2804.StreetManager;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.image.BufferedImage;
 
-public class PoliceCar extends EnemyCar {
-    private static String imagePath = "res/policecar.png"; //Path to image
+public class PoliceCar extends EnemyCar implements ActionListener {
+    private static String imagePath = "res/policecarleft.png"; //Path to image
     public static String hitboxPath = "res/policecarhitbox.ser"; //path to pixel hitbox Area
     private static String realHitboxPath = hitboxPath; //is set to null if hitbox was generated (or read from file)
     private static Area hitbox; //pixel hitbox is stored
 
+    private Timer lightTimer = new Timer(200, this);
+    private boolean right = false;
+    private static BufferedImage leftImage = null;
+    private static BufferedImage rightImage = null;
+    private static String imagePathLeft = "res/policecarleft.png"; //Path to image
+    private static String imagePathRight = "res/policecarright.png"; //Path to image
 
     public PoliceCar(double x, double y, StreetManager streetManager, double horizontalSpeed, double verticalSpeed, int track){
         super(x, y, streetManager, horizontalSpeed, verticalSpeed, track, imagePath, hitboxPath); //Object with x, y, image and hitbox file
@@ -25,6 +35,23 @@ public class PoliceCar extends EnemyCar {
             hitbox = getHitboxArea();
             realHitboxPath = null;
         }
+
+        if(rightImage == null || leftImage == null) {
+            setImage(imagePathLeft);
+            leftImage = getImage();
+            setImage(imagePathRight);
+            rightImage = getImage();
+        }
+        lightTimer.start();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if(right)
+            setImageDirect(rightImage);
+        else
+            setImageDirect(leftImage);
+        right = !right;
     }
 
     public Area getForwardHitbox(){ //hitbox in front of car

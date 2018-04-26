@@ -1,9 +1,9 @@
-package de.alex0606;
+package alex2804;
 
-import de.alex0606.objects.Object;
-import de.alex0606.objects.cars.EnemyCar;
-import de.alex0606.objects.cars.PlayerCar;
-import de.alex0606.objects.cars.PoliceCar;
+import alex2804.objects.Object;
+import alex2804.objects.cars.EnemyCar;
+import alex2804.objects.cars.PlayerCar;
+import alex2804.objects.cars.PoliceCar;
 
 import java.awt.*;
 import java.awt.geom.Area;
@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class ObstacleManager{
     private EnemyCar sampleEnemey; //EnemyCar to get dimensions from
+    private Object sampleBarrier;
     private PoliceCar samplePolice; //PoliceCar to get dimensions from
 
     private ArrayList<EnemyCar> enemys; //holds all enemys
@@ -47,13 +48,20 @@ public class ObstacleManager{
     private double newFuelTank = 0; //distance since fueltank was generated
     private double newFuelTankDistanceAdditive = PlayerCar.getFuelMaxDistance() * 0.02; //distance, added to the distance after which a new fueltank gets generated, after every new fueltank
 
+    private int newBarrierDistanceMin = 1000;
+    private int newBarrierDistanceMax = 10000;
+    private double newBarrierDistance = newBarrierDistanceMax;
+    private double newBarrier = 0;
+
     private double newPoliceCarTimeMax = 10000;
     private double newPoliceCarTime = 0;
-    private int maxPoliceCount = 2;
+    private int maxPoliceCount = 1;
     private double newPoliceCar = newPoliceCarTimeMax / 2;
+    public boolean policeCar = true;
 
-    public ObstacleManager(StreetManager streetManager){
+    public ObstacleManager(StreetManager streetManager, boolean policeCar){
         init(streetManager, new ArrayList<EnemyCar>(), new ArrayList<Object>()); //new ObstacleManager with no enemys and barriers
+        this.policeCar = policeCar;
     }
     public ObstacleManager(StreetManager streetManager, ArrayList<EnemyCar> enemys, ArrayList<Object> barriers){
         init(streetManager, enemys, barriers); //new ObstacleManager with given enemys and barriers
@@ -65,6 +73,7 @@ public class ObstacleManager{
         this.streetManager = streetManager;
         sampleEnemey = new EnemyCar(0, 0, streetManager);
         samplePolice = new PoliceCar(0, 0, streetManager, 0, 0, 0);
+        sampleBarrier = new Object(0, 0, "res/barrier.png");
         setFuelTanks(new ArrayList<>());
         timeStart = System.currentTimeMillis(); //reset time
     }
@@ -79,14 +88,22 @@ public class ObstacleManager{
             addNewFuelTank(); //generate new fueltank
         }
 
+        newBarrier += streetManager.getSpeed();
+        if(newBarrier >= newBarrierDistance / ((int)(streetManager.getHorizontalStreetCount() * 0.1) + 1)){
+            newBarrierDistance = random.nextInt(newBarrierDistanceMin, newBarrierDistanceMax);
+            newBarrier = 0;
+            addNewBarrier();
+        }
+
         //increase times since last repeat
-        newPoliceCarTime += (System.currentTimeMillis()) - timeStart;
+        if(policeCar)
+            newPoliceCarTime += (System.currentTimeMillis()) - timeStart;
         freeTrackTime += (System.currentTimeMillis() - timeStart);
         enemyTime += (System.currentTimeMillis() - timeStart);
         changeTrackTime += (System.currentTimeMillis() - timeStart);
         timeStart = System.currentTimeMillis();
 
-        if(newPoliceCarTime >= newPoliceCar && getPolice().size() < maxPoliceCount){
+        if(newPoliceCarTime >= newPoliceCar && getPolice().size() < maxPoliceCount && policeCar){
             newPoliceCarTime = 0;
             newPoliceCar = newPoliceCarTimeMax;
             addNewPolice(height);
@@ -123,6 +140,24 @@ public class ObstacleManager{
         double y = -fuelTank.getHeight()-50;
         fuelTank.moveTo(x, y); //move object to x and y
         addToFuelTanks(fuelTank); //add fuel tank object
+    }
+
+    public void addNewBarrier(){
+        Object barrier = getNewBarrier(); //get new enemy object
+        if(!checkObstacleCollision(barrier)){ //only add enemy if don't collide with any other enemy
+            addToBarriers(barrier); //add to ArrayList
+        }
+    }
+    public Object getNewBarrier(){
+        int track = random.nextInt(0, streetManager.getHorizontalStreetCount()); //get new track
+
+        int xAdditive = random.nextInt(1,StreetManager.getSampleStreet().getWidth() - sampleBarrier.getWidth() - 1); //not centered in lane
+        int x = streetManager.getXAdditive() + StreetManager.getSampleStreet().getWidth() * track + xAdditive; //x (track * streetwidth + xadditive, that not centered)
+
+        int y = - sampleBarrier.getHeight()-100; //y out of frame
+
+        Object barrier = new Object(x, y, "res/barrier.png");
+        return barrier; //return created barrier
     }
 
     public void addNewEnemy(){
@@ -183,7 +218,8 @@ public class ObstacleManager{
 
             checkEnemeyEnemyCollision(); //checks if enemys collide under each other
             checkEnemyBarrierCollision(); //checks if enemys collide with barriers
-            checkPoliceObstacleCollision(); //checks if a police car collides with an other obstacle
+            if(policeCar)
+                checkPoliceObstacleCollision(); //checks if a police car collides with an other obstacle
         }
     }
     public void updatePoliceCars(PlayerCar target){
@@ -322,7 +358,7 @@ public class ObstacleManager{
     }
     public void moveBarriers(){ //move Barrier objects
         for(Object barrier : getBarriers()){
-            barrier.moveVertical(streetManager.getSpeed());
+            barrier.moveVertical(streetManager.speed());
         }
     }
     public void moveFuelTanks(){ //move fueltank objects

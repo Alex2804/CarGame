@@ -1,6 +1,6 @@
-package de.alex0606;
+package alex2804;
 
-import de.alex0606.panels.PanelManager;
+import alex2804.panels.PanelManager;
 
 import javax.swing.*;
 import java.awt.*;

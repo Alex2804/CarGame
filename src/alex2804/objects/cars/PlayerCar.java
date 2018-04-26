@@ -1,6 +1,6 @@
-package de.alex0606.objects.cars;
+package alex2804.objects.cars;
 
-import de.alex0606.StreetManager;
+import alex2804.StreetManager;
 
 import java.awt.event.KeyEvent;
 

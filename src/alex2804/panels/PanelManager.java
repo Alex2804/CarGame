@@ -1,4 +1,4 @@
-package de.alex0606.panels;
+package alex2804.panels;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,8 +10,11 @@ import java.awt.image.*;
 public class PanelManager extends JPanel implements Listener, ActionListener{
     BlurGameBoard gameBoard;
     StartMenu startMenu;
+    StartMenuControlPanel startMenuControlPanel;
     PauseMenu pauseMenu;
     GameOverMenu gameOverMenu;
+    SettingsMenu settingsMenu;
+    SettingsMenuControlPanel  settingsMenuControlPanel;
 
     Timer startMenuTimer = new Timer(70, this);
 
@@ -34,6 +37,7 @@ public class PanelManager extends JPanel implements Listener, ActionListener{
         initStartMenu();
         initPauseMenu();
         initGameOverMenu();
+        initSettingsMenu();
 
         initGameBoard(constraints);
     }
@@ -45,9 +49,13 @@ public class PanelManager extends JPanel implements Listener, ActionListener{
     }
     private void initStartMenu(){
         startMenu = new StartMenu();
+        startMenuControlPanel = new StartMenuControlPanel();
         startMenu.addListener(this);
+        startMenuControlPanel.addListener(this);
         add(startMenu, constraints);
+        add(startMenuControlPanel, constraints);
         startMenu.setVisible(false);
+        startMenuControlPanel.setVisible(false);
     }
     private void initPauseMenu(){
         pauseMenu = new PauseMenu();
@@ -61,10 +69,21 @@ public class PanelManager extends JPanel implements Listener, ActionListener{
         add(gameOverMenu, constraints);
         gameOverMenu.setVisible(false);
     }
+    private void initSettingsMenu(){
+        settingsMenu = new SettingsMenu();
+        settingsMenuControlPanel = new SettingsMenuControlPanel();
+        settingsMenu.addListener(this);
+        settingsMenuControlPanel.addListener(this);
+        add(settingsMenu, constraints);
+        add(settingsMenuControlPanel, constraints);
+        settingsMenu.setVisible(false);
+        settingsMenuControlPanel.setVisible(false);
+    }
 
     public void showStartMenu(){
         if(!startMenu.isVisible()) {
             startMenu.setVisible(true);
+            startMenuControlPanel.setVisible(true);
             startMenuTimer.start();
             gameBoard.setGameOver(false);
             repaint();
@@ -74,6 +93,7 @@ public class PanelManager extends JPanel implements Listener, ActionListener{
         if(startMenu.isVisible()) {
             startMenuTimer.stop();
             startMenu.setVisible(false);
+            startMenuControlPanel.setVisible(false);
             startMenu.resetBackground();
             repaint();
         }
@@ -103,10 +123,25 @@ public class PanelManager extends JPanel implements Listener, ActionListener{
             repaint();
         }
     }
+    public void showSettingsMenu(){
+        if(!settingsMenu.isVisible()){
+            settingsMenu.setVisible(true);
+            settingsMenuControlPanel.setVisible(true);
+            repaint();
+        }
+    }
+    public void hideSettingsMenu(){
+        if(settingsMenu.isVisible()){
+            settingsMenu.setVisible(false);
+            settingsMenuControlPanel.setVisible(false);
+            repaint();
+        }
+    }
     public void hideMenus(){
         hideStartMenu();
         hidePauseMenu();
         hideGameOverMenu();
+        hideSettingsMenu();
     }
 
     @Override
@@ -159,24 +194,44 @@ public class PanelManager extends JPanel implements Listener, ActionListener{
     public void startMenu() {
         gameBoard.resetBlur();
         gameBoard.reset();
-        hidePauseMenu();
-        hideGameOverMenu();
+        hideMenus();
         showStartMenu();
+    }
+    @Override
+    public void settings() {
+        hideMenus();
+        showSettingsMenu();
+        startMenuTimer.start();
+    }
+    @Override
+    public void activateSound(boolean sound) {
+        gameBoard.sound = sound;
+    }
+    @Override
+    public void activatePoliceCar(boolean policeCar) {
+        gameBoard.policeCar = policeCar;
     }
 
     private class TAdapter extends KeyAdapter {
         @Override
         public void keyReleased(KeyEvent e) {
-            if(gameBoard.getGameOver() == false)
-                if(e.getKeyCode() == KeyEvent.VK_P){
+            if(startMenu.isVisible()){
+                if(e.getKeyCode() == KeyEvent.VK_S)
+                    settings();
+            }else if(settingsMenu.isVisible()){
+                if(e.getKeyCode() == KeyEvent.VK_S)
+                    startMenu();
+            }else if(!startMenu.isVisible()) {
+                if (e.getKeyCode() == KeyEvent.VK_P) {
                     pauseGame();
                 }
                 gameBoard.keyReleased(e);
+            }
         }
 
         @Override
         public void keyPressed(KeyEvent e) {
-            if(gameBoard.getGameOver() == false)
+            if(!startMenu.isVisible())
                 gameBoard.keyPressed(e);
         }
     }

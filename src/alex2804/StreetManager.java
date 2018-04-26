@@ -1,6 +1,6 @@
-package de.alex0606;
+package alex2804;
 
-import de.alex0606.objects.Object;
+import alex2804.objects.Object;
 
 import javax.swing.*;
 import java.awt.*;
