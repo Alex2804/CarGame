@@ -5,7 +5,7 @@ It was written in Java and Swing (a rewrite with OpenGL is planed).
 
 
 ## Sprites
-###### Structure
+##### Structure
 - Object
   - Car
     - PlayerCar
