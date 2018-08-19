@@ -1,7 +1,7 @@
 # CarGame
 
 This is a shool project, with the aim, to provide a basic game in Java.  
-It was written in Java and Swing.
+It was written in Java with Swing.
 
 
 ## Sprites
