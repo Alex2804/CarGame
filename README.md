@@ -1,6 +1,6 @@
 # CarGame
 
-This is a shool project, with the aim, to provide a basic game in Java.  
+This is a school project, with the aim, to provide a basic game in Java.  
 It was written in Java with Swing.
 
 
