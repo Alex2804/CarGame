@@ -38,12 +38,12 @@ _ ObstacleManager
 
 In the **GameBoard** class, the gameloop is running. In the gameloop, all positions of the obstacles and cars are updated. Also it is checked, if the **PlayerCar** collides with any other obstacle. Also the repainting is done in the gameloop after every update.
 
-The **PanelManager** manages all menus, declared in **Menu**and show/hide them when necessary.
+The **PanelManager** manages all menus, declared in **Menu** and show/hide them when necessary.
 
 The **ObstacleManager** manages all the obstacles and move all the stored sprites with only one method call (update(int height). Also it handles the generation of new obstacles (barriers, enemys, policecars, fueltanks).
 
 The **StreetManager** stores multiple **Objects** with images of street lanes in a grid and move them with one speed, as if they are one big road. The **StreetManager** generates a matching count of horizontal and vertical street **Objects**, depending on the size of the panel and the size of the street **Objects**.
 
-The **LanguageListener** and **Listener** are interfaces, which can get implemented in classes, which want's to recive the game state changes / signals. The LanguageListener only gets triggered, If the language was changed and updates all the UI components with text. The Listener interface, is for the game signals, and handle state changes, like "gameStarted" or instructions like "startGame".
+The **LanguageListener** and **Listener** are interfaces, which can get implemented in classes, which want's to receive the game state changes / signals. The LanguageListener only gets triggered, If the language was changed and updates all the UI components with text. The Listener interface, is for the game signals, and handle state changes, like "gameStarted" or instructions like "startGame".
 
 The **ResourceBundleEx** give words, by key, in choosen language.
