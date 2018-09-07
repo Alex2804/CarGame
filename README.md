@@ -12,7 +12,7 @@ It was written in Java with Swing.
     - EnemyCar
       - PoliceCar
 
-The **Object** class represent Sprites, whith a position, image and hitox.
+The **Object** class represent Sprites, with a position, image and hitox.
 **Car** inhertis from **Object** and adds methods, for vertical- and horizontal movement/speed.  
 **PlayerCar** inherits from **Car** and implements additional propertys and methods, to controll the fuel of the **PlayerCar** and for KeyEvents, to controll the direction of the car movement.  
 **EnemyCar** also inherits from **Car** and implements additional methods, for automated lane changes and movement updates.  
