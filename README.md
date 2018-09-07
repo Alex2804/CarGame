@@ -46,4 +46,4 @@ The **StreetManager** stores multiple **Objects** with images of street lanes in
 
 The **LanguageListener** and **Listener** are interfaces, which can get implemented in classes, which want's to receive the game state changes / signals. The LanguageListener only gets triggered, If the language was changed and updates all the UI components with text. The Listener interface, is for the game signals, and handle state changes, like "gameStarted" or instructions like "startGame".
 
-The **ResourceBundleEx** give words, by key, in choosen language.
+The **ResourceBundleEx** give words, by key, in choosen language (IntelliJ IDEA).
