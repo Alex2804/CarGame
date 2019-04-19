@@ -2,8 +2,10 @@ package alex2804;
 
 import alex2804.panels.PanelManager;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 public class MainWindow extends JFrame{
     //public static double scale = Toolkit.getDefaultToolkit().getScreenSize().width / 1920D;
@@ -12,7 +14,7 @@ public class MainWindow extends JFrame{
     //public static double scale = 1280 / 1920D;
 
     public MainWindow(){
-        setIconImage(new ImageIcon("res/images/logo.png").getImage());
+        ResourceHelper.trySetIcon(this, "images/logo.png");
         setResizable(true);
 
         int width = 600;

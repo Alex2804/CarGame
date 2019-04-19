@@ -79,7 +79,7 @@ public class ObstacleManager{
         this.streetManager = streetManager;
         sampleEnemey = new EnemyCar(0, 0, streetManager);
         samplePolice = new PoliceCar(0, 0, streetManager, 0, 0, 0);
-        sampleBarrier = new Object(0, 0, "res/images/barrier.png");
+        sampleBarrier = new Object(0, 0, "images/barrier.png");
         setFuelTanks(new ArrayList<>());
         timeStart = System.currentTimeMillis(); //reset time
     }
@@ -138,7 +138,7 @@ public class ObstacleManager{
     }
 
     public void addNewFuelTank(){
-        Object fuelTank = new Object(0, 0, "res/images/fueltank.png"); //new object
+        Object fuelTank = new Object(0, 0, "images/fueltank.png"); //new object
         //int track = random.nextInt(0, streetManager.getHorizontalStreetCount());
         int track = random.nextInt(0, streetManager.getHorizontalStreetCount()); //track
         double x = streetManager.getXAdditive() + StreetManager.getSampleStreet().getWidth() * track +
@@ -162,7 +162,7 @@ public class ObstacleManager{
 
         int y = - sampleBarrier.getHeight()-100; //y out of frame
 
-        Object barrier = new Object(x, y, "res/images/barrier.png");
+        Object barrier = new Object(x, y, "images/barrier.png");
         return barrier; //return created barrier
     }
 

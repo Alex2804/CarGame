@@ -126,8 +126,17 @@ public class Object{
     }
 
     public void setImage(String imagePath){
+        imagePath = "/" + imagePath;
+        InputStream imageStream = getClass().getResourceAsStream(imagePath); // Read image from resources
+        if (imageStream == null) {
+            System.out.println("Resource at path " + imagePath + " not found!");
+            return;
+        }
+
         try {
-            BufferedImage image = ImageIO.read(new File(imagePath)); //Reads the Image (throws exeption is path is not valid)
+
+            BufferedImage image = ImageIO.read(imageStream); // Read image from the stream
+            //BufferedImage image = ImageIO.read(new File(imagePath)); //Reads the Image (throws exeption is path is not valid)
             setImage(image); //Object sets image (this method only reads it)
         }catch (IOException e){
             System.out.println("Image " + imagePath + " not Found!");

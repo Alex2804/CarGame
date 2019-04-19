@@ -4,7 +4,7 @@ import alex2804.objects.Object;
 import alex2804.MainWindow;
 
 public abstract class Car extends Object {
-    private static String imagePath = "res/images/car.png"; //standard car image
+    private static String imagePath = "images/car.png"; //standard car image
 
     public double verticalSpeed = 0; //vertical speed of the car
     private double horizontalSpeed = 0; //horizontal speed of the car

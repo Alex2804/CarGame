@@ -5,7 +5,7 @@ import alex2804.StreetManager;
 import java.awt.event.KeyEvent;
 
 public class PlayerCar extends Car{
-    private static String imagePath = "res/images/playercar.png"; //path to image
+    private static String imagePath = "images/playercar.png"; //path to image
     public static String hitboxPath = "res/hitboxes/playercarhitbox.ser"; //path to hitbox area
 
     private double speedDefaultForward = -10; //key up speed default

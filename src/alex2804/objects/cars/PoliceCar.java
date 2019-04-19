@@ -21,8 +21,8 @@ public class PoliceCar extends EnemyCar implements ActionListener {
     private boolean right = false;
     private static BufferedImage leftImage = null;
     private static BufferedImage rightImage = null;
-    private static String imagePathLeft = "res/images/policecarleft.png"; //Path to image
-    private static String imagePathRight = "res/images/policecarright.png"; //Path to image
+    private static String imagePathLeft = "images/policecarleft.png"; //Path to image
+    private static String imagePathRight = "images/policecarright.png"; //Path to image
 
     public PoliceCar(double x, double y, StreetManager streetManager, double horizontalSpeed, double verticalSpeed, int track){
         super(x, y, streetManager, horizontalSpeed, verticalSpeed, track, imagePathLeft, hitboxPath); //Object with x, y, image and hitbox file
