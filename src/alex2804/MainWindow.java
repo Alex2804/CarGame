@@ -37,6 +37,12 @@ public class MainWindow extends JFrame{
         System.setProperty("sun.java2d.opengl", "True");
         //CleanSetup cs = new CleanSetup();
         //cs.start();
-        MainWindow mainWindow = new MainWindow();
+        if (args.length == 1 && args[0].contains("writehitboxes")) {
+            ResourceHelper.writeHitbox("images/playercar.png", "playercarhitbox.ser");
+            ResourceHelper.writeHitbox("images/enemycar.png", "enemycarhitbox.ser");
+            ResourceHelper.writeHitbox("images/policecarleft.png", "policecarhitbox.ser");
+        } else {
+            new MainWindow();
+        }
     }
 }
