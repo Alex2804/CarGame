@@ -61,62 +61,17 @@ public class Object{
             }
         }
     }
-    public Area getPixelHitbox(){
-        if(hitboxPath != null) { //Read hitbox area from file if path to file is given
-            try {
-                FileInputStream fis = new FileInputStream(hitboxPath);
-                ObjectInputStream ois = new ObjectInputStream(fis);
-                Area hitboxArea = new Area((Path2D) ois.readObject()); //Read Path and convert it to area
-                ois.close();
-                fis.close(); //close file
-                return hitboxArea; //return the hitbox area
-            } catch (FileNotFoundException e) {
-                System.out.println(e);
-                return createWriteHitbox(); //Write
-            } catch (IOException e) {
-                System.out.println(e);
-                return createWriteHitbox(); //Try to write area to file if stream stops (whyever)
-            } catch (ClassNotFoundException e) {
-                System.out.println(e);
-                return createWriteHitbox(); //Write area to file if class not found
-            }
-        }else
-            return createPixelHitbox();
-    }
-    private Area createWriteHitbox(){
-        File dir = new File("res/hitboxes");
-        if(!dir.exists()){
-            System.out.println("creating directory \"hitboxes\"");
-            dir.mkdir();
+    private Area getPixelHitbox(){
+        try {
+            InputStream fis = getClass().getResource("/" + hitboxPath).openStream(); //Read hitbox area from resources
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            Area hitboxArea = new Area((Path2D) ois.readObject()); //Read Path and convert it to area
+            ois.close();
+            fis.close(); //close file
+            return hitboxArea;
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
-
-        System.out.println("create/write " + hitboxPath);
-        Area hitboxArea = createPixelHitbox(); //Create pixelhitbox-area
-        try{
-            FileOutputStream fos = new FileOutputStream(hitboxPath);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(AffineTransform.getTranslateInstance(0,0).createTransformedShape(hitboxArea)); //Write area to file. Only transformed shapes are serializable
-            oos.close(); //close file
-            fos.close();
-        }catch (FileNotFoundException e){
-            System.out.println(e);
-        }catch (IOException e){
-            System.out.println(e);}
-        return hitboxArea; //return hitbox area, even if errors occur.
-    }
-    public Area createPixelHitbox(){
-        Area area = new Area(); //create new (empty) Area object
-
-        BufferedImage image = getOriginImage(); //get original (unscaled) image
-
-        for(int x = 0; x < image.getWidth(); x++){ //Parse every column
-            for(int y = 0; y < image.getHeight(); y++){ //Parse every row
-                if(!(image.getRGB(x, y)>>24==0x00)){ //if Alpha is 0 (pixel is transparent)
-                    area.add(new Area(new Rectangle(x, y, 1, 1))); //The transparent pixel is added to the area
-                }
-            }
-        }
-        return area; //return the new pixel hitbox
     }
     public void setHitboxArea(Area hitboxArea) {
         this.hitboxArea = hitboxArea;
@@ -134,7 +89,6 @@ public class Object{
         }
 
         try {
-
             BufferedImage image = ImageIO.read(imageStream); // Read image from the stream
             //BufferedImage image = ImageIO.read(new File(imagePath)); //Reads the Image (throws exeption is path is not valid)
             setImage(image); //Object sets image (this method only reads it)

@@ -28,14 +28,14 @@ public class ResourceHelper {
         }
     }
 
-    public static void writeHitbox(String imagePath, String hitboxName) {
+    public static void writeHitbox(String imagePath, String path) {
         // Create hitbox
         Area area = new Area(); //create new (empty) Area object
         BufferedImage image;
         try {
             image = ImageIO.read(ResourceHelper.class.getResource("/" + imagePath)); //get original (unscaled) image
         } catch (IOException e) {
-            System.out.println("Failed to load resource from " + imagePath + ", skipping " + hitboxName);
+            System.out.println("Failed to load resource from " + imagePath + ", skipping " + path);
             return;
         }
 
@@ -49,7 +49,7 @@ public class ResourceHelper {
 
         // Save hitbox
         new File("res/hitboxes").mkdirs();
-        String hitboxPath = "res/hitboxes/" + hitboxName;
+        String hitboxPath = "res/" + path;
 
         try {
             FileOutputStream fos = new FileOutputStream(hitboxPath);

@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class EnemyCar extends Car{
     private static String imagePath = "images/enemycar.png"; //Path to image
-    public static String hitboxPath = "res/hitboxes/enemycarhitbox.ser"; //path to pixel hitbox Area
+    public static String hitboxPath = "hitboxes/enemycarhitbox.ser"; //path to pixel hitbox Area
     private static String realHitboxPath = hitboxPath;
     private static Area hitbox;
 

@@ -13,7 +13,7 @@ import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 
 public class PoliceCar extends EnemyCar implements ActionListener {
-    public static String hitboxPath = "res/hitboxes/policecarhitbox.ser"; //path to pixel hitbox Area
+    public static String hitboxPath = "hitboxes/policecarhitbox.ser"; //path to pixel hitbox Area
     private static String realHitboxPath = hitboxPath; //is set to null if hitbox was generated (or read from file)
     private static Area hitbox; //pixel hitbox is stored
 

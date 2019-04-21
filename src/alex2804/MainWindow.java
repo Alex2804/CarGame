@@ -1,5 +1,8 @@
 package alex2804;
 
+import alex2804.objects.cars.EnemyCar;
+import alex2804.objects.cars.PlayerCar;
+import alex2804.objects.cars.PoliceCar;
 import alex2804.panels.PanelManager;
 
 import javax.imageio.ImageIO;
@@ -38,9 +41,9 @@ public class MainWindow extends JFrame{
         //CleanSetup cs = new CleanSetup();
         //cs.start();
         if (args.length == 1 && args[0].contains("writehitboxes")) {
-            ResourceHelper.writeHitbox("images/playercar.png", "playercarhitbox.ser");
-            ResourceHelper.writeHitbox("images/enemycar.png", "enemycarhitbox.ser");
-            ResourceHelper.writeHitbox("images/policecarleft.png", "policecarhitbox.ser");
+            ResourceHelper.writeHitbox("images/playercar.png", PlayerCar.hitboxPath);
+            ResourceHelper.writeHitbox("images/enemycar.png", EnemyCar.hitboxPath);
+            ResourceHelper.writeHitbox("images/policecarleft.png", PoliceCar.hitboxPath);
         } else {
             new MainWindow();
         }
