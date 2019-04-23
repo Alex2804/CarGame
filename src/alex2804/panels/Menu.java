@@ -2,6 +2,7 @@ package alex2804.panels;
 
 import alex2804.MainWindow;
 import alex2804.ResourceBundleEx;
+import alex2804.ResourceHelper;
 
 import javax.swing.*;
 import java.awt.*;
@@ -51,7 +52,6 @@ public abstract class Menu extends JPanel{
 
 //All following classes are based on Menu and add individual Components for each Menu
 class StartMenu extends Menu implements LanguageListener{
-    ImageIcon logo = null;
     JLabel logoLabel;
     JButton startButton;
     JButton leaveButton;
@@ -63,8 +63,7 @@ class StartMenu extends Menu implements LanguageListener{
         c.fill = c.HORIZONTAL;
         c.ipady = 30;
 
-        logo = new ImageIcon("res/images/logo.png");
-        logo = new ImageIcon(logo.getImage().getScaledInstance((int)(logo.getIconWidth() * MainWindow.scale), (int)(logo.getIconHeight() * MainWindow.scale), BufferedImage.SCALE_SMOOTH));
+        ImageIcon logo = ResourceHelper.getScaledIcon("images/logo.png", MainWindow.scale);
         logoLabel = new JLabel(logo);
         c.gridy = 0;
         addComponent(logoLabel, c);
@@ -164,7 +163,6 @@ class PauseMenu extends Menu implements LanguageListener{
 }
 
 class GameOverMenu extends Menu implements LanguageListener{
-    ImageIcon gameOverIcon = null;
     JLabel gameOverLabel;
     JButton restartButton;
     JButton homeButton;
@@ -177,9 +175,7 @@ class GameOverMenu extends Menu implements LanguageListener{
         c.fill = c.HORIZONTAL;
         c.ipady = 30;
 
-
-        gameOverIcon = new ImageIcon("res/images/gameover.png");
-        gameOverIcon = new ImageIcon(gameOverIcon.getImage().getScaledInstance((int)(gameOverIcon.getIconWidth() * MainWindow.scale), (int)(gameOverIcon.getIconHeight() * MainWindow.scale), BufferedImage.SCALE_SMOOTH));
+        ImageIcon gameOverIcon = ResourceHelper.getScaledIcon("images/gameover.png", MainWindow.scale);
         gameOverLabel = new JLabel(gameOverIcon);
         c.gridy = 0;
         addComponent(gameOverLabel, c);
@@ -311,13 +307,11 @@ class SettingsMenu extends Menu implements LanguageListener{
 
 class SettingsMenuControlPanel extends Menu{
     JButton homeButton;
-    ImageIcon homeIcon;
 
     public SettingsMenuControlPanel(){
         GridBagConstraints c = new GridBagConstraints();
 
-        homeIcon = new ImageIcon("res/images/home.png");
-        homeIcon = new ImageIcon(homeIcon.getImage().getScaledInstance((int)(homeIcon.getIconWidth() * MainWindow.scale), (int)(homeIcon.getIconHeight() * MainWindow.scale), BufferedImage.SCALE_SMOOTH));
+        ImageIcon homeIcon = ResourceHelper.getScaledIcon("images/home.png", MainWindow.scale);
         homeButton = new JButton(homeIcon);
         homeButton.setBackground(new Color(0, 0, 0, 0));
         homeButton.addActionListener(new ActionListener() {
@@ -347,13 +341,11 @@ class SettingsMenuControlPanel extends Menu{
 
 class StartMenuControlPanel extends Menu{
     JButton settingsButton;
-    ImageIcon settingsIcon;
 
     public StartMenuControlPanel(){
         GridBagConstraints c = new GridBagConstraints();
 
-        settingsIcon = new ImageIcon("res/images/settings.png");
-        settingsIcon = new ImageIcon(settingsIcon.getImage().getScaledInstance((int)(settingsIcon.getIconWidth() * MainWindow.scale), (int)(settingsIcon.getIconHeight() * MainWindow.scale), BufferedImage.SCALE_SMOOTH));
+        ImageIcon settingsIcon = ResourceHelper.getScaledIcon("images/settings.png", MainWindow.scale);
         settingsButton = new JButton(settingsIcon);
         settingsButton.setBackground(new Color(0, 0, 0, 0));
         settingsButton.addActionListener(new ActionListener() {

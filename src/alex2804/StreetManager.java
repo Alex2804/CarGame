@@ -13,7 +13,7 @@ import java.util.ArrayList;
 * It moves all the Objects with the same speed and is never ending
 **/
 public class StreetManager { //Manages the road
-    public static String imagePath = "res/images/street.png"; //Path to street image
+    public static String imagePath = "images/street.png"; //Path to street image
     private static Object sampleStreet = new Object(0, 0, imagePath); //street to get its width and height
     private ArrayList<Object> streets; //holds the street objects
 

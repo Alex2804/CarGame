@@ -1,9 +1,14 @@
 package alex2804;
 
+import alex2804.objects.cars.EnemyCar;
+import alex2804.objects.cars.PlayerCar;
+import alex2804.objects.cars.PoliceCar;
 import alex2804.panels.PanelManager;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 public class MainWindow extends JFrame{
     //public static double scale = Toolkit.getDefaultToolkit().getScreenSize().width / 1920D;
@@ -12,7 +17,7 @@ public class MainWindow extends JFrame{
     //public static double scale = 1280 / 1920D;
 
     public MainWindow(){
-        setIconImage(new ImageIcon("res/images/logo.png").getImage());
+        ResourceHelper.trySetIcon(this, "images/logo.png");
         setResizable(true);
 
         int width = 600;
@@ -35,6 +40,12 @@ public class MainWindow extends JFrame{
         System.setProperty("sun.java2d.opengl", "True");
         //CleanSetup cs = new CleanSetup();
         //cs.start();
-        MainWindow mainWindow = new MainWindow();
+        if (args.length == 1 && args[0].contains("writehitboxes")) {
+            ResourceHelper.writeHitbox("images/playercar.png", PlayerCar.hitboxPath);
+            ResourceHelper.writeHitbox("images/enemycar.png", EnemyCar.hitboxPath);
+            ResourceHelper.writeHitbox("images/policecarleft.png", PoliceCar.hitboxPath);
+        } else {
+            new MainWindow();
+        }
     }
 }
